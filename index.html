@@ -3,349 +3,386 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Траты</title>
+<title>Мои расходы</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-:root{
-  --bg:#f2f2f7; --card:#ffffff; --text:#000000; --muted:#8e8e93;
-  --accent:#ff9500; --accent2:#ff5e3a; --danger:#ff3b30; --chipbg:rgba(0,0,0,.06);
-  --shadow:0 4px 16px rgba(0,0,0,.08); --inputbg:#ffffff; --border:rgba(0,0,0,.08);
-}
-html[data-theme="dark"]{
-  --bg:#1c1c1e; --card:#2c2c2e; --text:#ffffff; --muted:#98989f;
-  --chipbg:rgba(255,255,255,.1); --shadow:0 4px 16px rgba(0,0,0,.4);
-  --inputbg:#2c2c2e; --border:rgba(255,255,255,.12);
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:40px}
-#app{max-width:520px;margin:0 auto;padding:16px}
+  :root {
+    --bg: #f2f2f7; --card: #ffffff; --text: #1c1c1e; --sub: #8e8e93;
+    --accent: #ff9f0a; --accent2: #ffb340; --danger: #ff3b30;
+    --chip-bg: #f0f0f5; --input-bg: #ffffff; --sep: rgba(60,60,67,.12);
+    --shadow: 0 2px 12px rgba(0,0,0,.07);
+  }
+  html.dark {
+    --bg: #1c1c1e; --card: #2c2c2e; --text: #ffffff; --sub: #98989f;
+    --chip-bg: #3a3a3c; --input-bg: #2c2c2e; --sep: rgba(84,84,88,.65);
+    --shadow: 0 2px 12px rgba(0,0,0,.4);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  body { font-family:-apple-system,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--text);
+         min-height:100vh; padding-bottom:40px; transition: background .2s; }
+  .wrap { max-width:520px; margin:0 auto; padding:14px; }
 
-/* ---------- Онбординг ---------- */
-#onboarding{position:fixed;inset:0;background:var(--bg);z-index:100;
-  display:flex;align-items:center;justify-content:center;padding:24px}
-.ob-card{background:var(--card);border-radius:24px;padding:32px 24px;width:100%;max-width:420px;
-  box-shadow:var(--shadow);text-align:center;animation:pop .4s ease}
-@keyframes pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
-.ob-emoji{font-size:56px;margin-bottom:12px}
-.ob-title{font-size:24px;font-weight:700;margin-bottom:8px}
-.ob-sub{font-size:15px;color:var(--muted);margin-bottom:24px;line-height:1.45}
-.ob-input{width:100%;padding:16px;font-size:20px;font-weight:600;text-align:center;
-  border:2px solid var(--border);border-radius:14px;background:var(--inputbg);color:var(--text);
-  outline:none;transition:border-color .2s;margin-bottom:8px}
-.ob-input:focus{border-color:var(--accent)}
-.ob-hint{font-size:12px;color:var(--muted);margin-bottom:20px}
-.ob-note{font-size:14px;color:var(--muted);margin-top:16px;line-height:1.5}
-.ob-btn{width:100%;padding:16px;border:none;border-radius:14px;font-size:17px;font-weight:600;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;cursor:pointer}
-.ob-btn:active{opacity:.85;transform:scale(.98)}
+  /* ---------- онбординг ---------- */
+  #onboard { display:none; padding-top:10vh; }
+  .ob-card { background:var(--card); border-radius:20px; padding:28px 22px; box-shadow:var(--shadow); text-align:center; }
+  .ob-emoji { font-size:52px; margin-bottom:10px; }
+  .ob-title { font-size:24px; font-weight:700; margin-bottom:6px; }
+  .ob-sub { color:var(--sub); font-size:15px; margin-bottom:20px; line-height:1.4; }
+  .ob-label { text-align:left; font-size:13px; font-weight:600; color:var(--sub); margin:16px 0 8px; text-transform:uppercase; letter-spacing:.4px; }
+  .cur-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .cur-item { background:var(--chip-bg); border:2px solid transparent; border-radius:12px; padding:10px 4px;
+              cursor:pointer; text-align:center; transition:all .15s; }
+  .cur-item .s { font-size:20px; font-weight:700; display:block; }
+  .cur-item .n { font-size:10px; color:var(--sub); margin-top:2px; }
+  .cur-item.active { border-color:var(--accent); background:rgba(255,159,10,.12); }
+  .ob-input { width:100%; padding:14px; font-size:22px; font-weight:700; text-align:center;
+              background:var(--input-bg); border:2px solid var(--sep); border-radius:14px; color:var(--text); outline:none; }
+  .ob-input:focus { border-color:var(--accent); }
+  .ob-note { color:var(--sub); font-size:14px; margin-top:14px; line-height:1.45; }
+  .btn { display:block; width:100%; padding:15px; border:none; border-radius:14px; font-size:17px; font-weight:600;
+         cursor:pointer; margin-top:20px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; }
+  .btn:active { transform:scale(.98); }
 
-/* ---------- Шапка ---------- */
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.header h1{font-size:20px;font-weight:700}
-.icon-btn{width:38px;height:38px;border-radius:12px;border:none;background:var(--chipbg);
-  color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  /* ---------- шапка ---------- */
+  header { display:flex; justify-content:space-between; align-items:center; padding:4px 2px 12px; }
+  header h1 { font-size:22px; font-weight:800; }
+  .icon-btn { width:38px; height:38px; border-radius:12px; border:none; background:var(--card); color:var(--text);
+              font-size:17px; cursor:pointer; box-shadow:var(--shadow); }
 
-/* ---------- Карточка баланса ---------- */
-.balance-card{background:linear-gradient(135deg,#ff9500,#ff5e3a);border-radius:20px;
-  padding:20px;color:#fff;box-shadow:var(--shadow);margin-bottom:14px}
-.balance-label{font-size:13px;opacity:.85;margin-bottom:6px}
-.balance-value{font-size:34px;font-weight:700;letter-spacing:-.5px}
-.balance-value.negative{color:#ffd6d1}
-.balance-meta{font-size:13px;opacity:.85;margin-top:6px}
-.balance-edit-hint{font-size:11px;opacity:.6;margin-top:8px;cursor:pointer}
+  /* ---------- карточка баланса ---------- */
+  .balance-card { background:linear-gradient(135deg,#ff9f0a,#ff6a00); border-radius:20px; padding:22px 20px;
+                  color:#fff; box-shadow:0 6px 20px rgba(255,120,0,.30); margin-bottom:16px; }
+  .balance-card .label { font-size:13px; opacity:.85; margin-bottom:6px; }
+  .balance-card .amount { font-size:34px; font-weight:800; letter-spacing:-.5px; }
+  .balance-card .amount.negative { color:#ffd7d5; }
+  .balance-card .meta { font-size:12px; opacity:.8; margin-top:6px; }
+  .balance-hint { font-size:12px; opacity:.75; margin-top:10px; cursor:pointer; text-decoration:underline dashed; text-underline-offset:3px; }
 
-/* ---------- Ввод ---------- */
-.input-card{background:var(--card);border-radius:18px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
-.exp-input{width:100%;padding:14px;font-size:16px;border:2px solid var(--border);
-  border-radius:12px;background:var(--inputbg);color:var(--text);outline:none;transition:border-color .2s}
-.exp-input:focus{border-color:var(--accent)}
-.preview{display:none;margin-top:12px;gap:8px;flex-wrap:wrap;align-items:center}
-.preview.show{display:flex}
-.preview-label{font-size:13px;color:var(--muted)}
-.chip{padding:7px 14px;border-radius:20px;font-size:13px;font-weight:500;background:var(--chipbg);
-  color:var(--text);border:none;cursor:pointer;transition:all .15s}
-.chip.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
-.add-btn{width:100%;margin-top:12px;padding:14px;border:none;border-radius:12px;font-size:16px;
-  font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;cursor:pointer}
-.add-btn:active{transform:scale(.98)}
+  /* ---------- ввод ---------- */
+  .add-box { background:var(--card); border-radius:16px; padding:14px; box-shadow:var(--shadow); margin-bottom:16px; }
+  .add-box input { width:100%; padding:13px 14px; font-size:16px; background:var(--bg); border:none; border-radius:12px;
+                   color:var(--text); outline:none; }
+  .preview { display:none; align-items:center; gap:8px; margin-top:10px; font-size:14px; flex-wrap:wrap; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .chip { padding:7px 12px; border-radius:20px; background:var(--chip-bg); font-size:13px; cursor:pointer;
+          border:2px solid transparent; color:var(--text); }
+  .chip.active { border-color:var(--accent); font-weight:600; }
 
-/* ---------- Статистика ---------- */
-.section-title{font-size:16px;font-weight:700;margin:18px 0 10px}
-.stat-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.stat-icon{width:34px;height:34px;border-radius:10px;background:var(--chipbg);
-  display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.stat-info{flex:1;min-width:0}
-.stat-top{display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px}
-.stat-name{font-weight:500}
-.stat-sum{color:var(--muted)}
-.bar{height:6px;border-radius:3px;background:var(--chipbg);overflow:hidden}
-.bar-fill{height:100%;border-radius:3px;transition:width .4s ease}
+  /* ---------- статистика ---------- */
+  h2.sec { font-size:17px; font-weight:700; margin:20px 2px 10px; }
+  .periods { display:flex; gap:6px; margin-bottom:12px; }
+  .pbtn { flex:1; padding:9px 0; border:none; border-radius:10px; background:var(--chip-bg); color:var(--sub);
+          font-size:13px; font-weight:600; cursor:pointer; }
+  .pbtn.active { background:var(--card); color:var(--text); box-shadow:var(--shadow); }
+  .stat-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--card);
+              border-radius:12px; margin-bottom:8px; box-shadow:var(--shadow); }
+  .stat-row .ic { font-size:20px; }
+  .stat-row .info { flex:1; }
+  .stat-row .line1 { display:flex; justify-content:space-between; font-size:14px; margin-bottom:5px; }
+  .stat-row .line1 .cat { font-weight:600; }
+  .stat-row .line1 .sum { color:var(--sub); }
+  .bar { height:5px; background:var(--chip-bg); border-radius:3px; overflow:hidden; }
+  .bar i { display:block; height:100%; border-radius:3px; }
+  .empty { text-align:center; color:var(--sub); padding:28px 10px; font-size:14px; }
 
-/* ---------- История ---------- */
-.exp-item{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:14px;
-  padding:13px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
-.exp-icon{width:38px;height:38px;border-radius:12px;background:var(--chipbg);
-  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.exp-info{flex:1;min-width:0}
-.exp-name{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.exp-cat{font-size:12px;color:var(--muted);margin-top:2px}
-.exp-right{text-align:right;flex-shrink:0}
-.exp-amount{font-size:15px;font-weight:600}
-.exp-del{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;
-  padding:4px;margin-left:2px}
-.exp-del:active{color:var(--danger)}
-.day-label{font-size:12px;color:var(--muted);margin:14px 2px 6px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-.empty{text-align:center;color:var(--muted);padding:32px 16px;font-size:14px;line-height:1.5}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1c1c1e;color:#fff;
-  padding:12px 20px;border-radius:24px;font-size:14px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
-.toast.show{opacity:.95}
+  /* ---------- история ---------- */
+  .date-head { font-size:12px; color:var(--sub); font-weight:600; margin:14px 4px 6px; text-transform:capitalize; }
+  .exp-row { display:flex; align-items:center; gap:12px; background:var(--card); border-radius:14px;
+             padding:12px 14px; margin-bottom:8px; box-shadow:var(--shadow); }
+  .exp-row .ic { width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+                 font-size:19px; flex-shrink:0; }
+  .exp-row .info { flex:1; min-width:0; }
+  .exp-row .name { font-size:15px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .exp-row .cat { font-size:12px; color:var(--sub); margin-top:2px; }
+  .exp-row .sum { font-size:15px; font-weight:700; white-space:nowrap; }
+  .exp-row .del { border:none; background:none; color:var(--sub); font-size:17px; cursor:pointer; padding:4px; flex-shrink:0; }
 </style>
 </head>
 <body>
 
-<!-- Экран первого запуска -->
-<div id="onboarding">
+<!-- ============ ОНБОРДИНГ ============ -->
+<div class="wrap" id="onboard">
   <div class="ob-card">
     <div class="ob-emoji">👋</div>
     <div class="ob-title">Добро пожаловать!</div>
-    <div class="ob-sub">Сколько денег у тебя на данный момент?</div>
-    <input type="number" inputmode="decimal" class="ob-input" id="obInput" placeholder="0" autofocus>
-    <div class="ob-hint">Можно ввести 0, если пока пусто</div>
-    <button class="ob-btn" id="obStart">Начать</button>
-    <div class="ob-note">С этой суммы мы начнём вести твой баланс 💰</div>
+    <div class="ob-sub">Настроим твой кошелёк за 10 секунд</div>
+
+    <div class="ob-label">Выбери валюту</div>
+    <div class="cur-grid" id="curGrid"></div>
+
+    <div class="ob-label">Сколько денег у тебя сейчас?</div>
+    <input class="ob-input" id="obBalance" type="text" inputmode="decimal" placeholder="0" autofocus>
+    <div class="ob-note">С этой суммы мы начнём вести твой баланс 💰<br>Каждая трата будет её уменьшать.</div>
+    <button class="btn" onclick="finishOnboard()">Начать учёт</button>
   </div>
 </div>
 
-<!-- Основной экран -->
-<div id="app" style="display:none">
-  <div class="header">
-    <h1>💸 Траты</h1>
-    <button class="icon-btn" id="csvBtn" title="Экспорт в CSV">↧</button>
-  </div>
+<!-- ============ ОСНОВНОЙ ЭКРАН ============ -->
+<div class="wrap" id="main" style="display:none">
+  <header>
+    <h1>💰 Мои расходы</h1>
+    <button class="icon-btn" onclick="exportCSV()" title="Экспорт CSV">↧</button>
+  </header>
 
   <div class="balance-card">
-    <div class="balance-label">Осталось на балансе</div>
-    <div class="balance-value" id="balanceValue">0 ₸</div>
-    <div class="balance-meta" id="balanceMeta">Потрачено в этом месяце: 0 ₸</div>
-    <div class="balance-edit-hint" id="editBalance">Нажми, чтобы изменить баланс</div>
+    <div class="label">Осталось на балансе</div>
+    <div class="amount" id="balanceAmount">0</div>
+    <div class="meta" id="balanceMeta"></div>
+    <div class="balance-hint" onclick="openSettings()">Нажми, чтобы изменить баланс или валюту</div>
   </div>
 
-  <div class="input-card">
-    <input class="exp-input" id="expInput" placeholder="Например: кофе 350">
-    <div class="preview" id="preview">
-      <span class="preview-label" id="previewText"></span>
-    </div>
-    <button class="add-btn" id="addBtn">Добавить</button>
+  <div class="add-box">
+    <input id="expInput" placeholder="Например: кофе 350" oninput="onInput()" onkeydown="if(event.key==='Enter')addExpense()">
+    <div class="preview" id="preview"></div>
+    <div class="chips" id="chips"></div>
   </div>
 
-  <div class="section-title">Статистика за месяц</div>
+  <h2 class="sec">Статистика</h2>
+  <div class="periods">
+    <button class="pbtn active" data-p="month" onclick="setPeriod('month')">Месяц</button>
+    <button class="pbtn" data-p="week" onclick="setPeriod('week')">Неделя</button>
+    <button class="pbtn" data-p="all" onclick="setPeriod('all')">Всё время</button>
+  </div>
   <div id="stats"></div>
 
-  <div class="section-title">История</div>
+  <h2 class="sec">История трат</h2>
   <div id="history"></div>
 </div>
 
-<div class="toast" id="toast"></div>
-
 <script>
-const tg = window.Telegram?.WebApp;
-if (tg) { tg.ready(); tg.expand(); document.documentElement.dataset.theme = tg.colorScheme; }
-tg?.onEvent('themeChanged', () => { document.documentElement.dataset.theme = tg.colorScheme; });
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); }
 
-/* ---------- Категории ---------- */
-const CATS = [
-  {id:'food',  name:'Еда',         icon:'🍔', color:'#ff9500', keys:['кофе','чай','обед','ужин','завтрак','еда','пицца','бургер','шаверма','шаурма','столовая','снек','перекус','лаваш','хлеб','молоко','вода','сок','энергетик','напиток','продукты','магазин','магнум','small','гипермаркет','супермаркет','арбуз','кас пи','каспий','данисса','пекарня','кофейня','ресторан','кафе','фастфуд','доставка','yandex eda','яндекс еда','wolt','глонасс','снеки','сладости','шоколад','мороженое','колбаса','сыр','яйца','макароны','крупа','рис','фрукты','овощи','мясо','курица','рыба']},
-  {id:'transport', name:'Транспорт', icon:'🚕', color:'#34c759', keys:['такси','yandex go','яндекс го','indrive','индрайв','автобус','метро','трамвай','троллейбус','маршрутка','электричка','поезд','билет','бензин','азс','заправка','топливо','парковка','мойка','шиномонтаж','то','техосмотр','масло','шины','onay','онай','карта транспорта']},
-  {id:'health', name:'Здоровье',  icon:'💊', color:'#ff3b30', keys:['аптека','лекарство','таблетки','врач','клиника','анализы','стоматолог','терапевт','больница','витамины','маска','пластырь','термометр','массаж','спортзал','фитнес','тренажер','абонемент','йога','бассейн']},
-  {id:'fun',   name:'Развлечения', icon:'🎬', color:'#af52de', keys:['кино','подписка','netflix','spotify','яндекс плюс','steam','игра','игры','concert','концерт','театр','музей','бассейн','боулинг','бильярд','квест','парк','аттракцион','аниме','книги','книга','музыка','itunes','app store','google play','tiktok premium','дисней','ivi','кинорум','кнопка']},
-  {id:'comms', name:'Связь',       icon:'📱', color:'#007aff', keys:['мтс','билайн','мегaфон','мегафон','теле2','tele2','activ','алтел','связь','интернет','хостинг','wi-fi','wifi','дом ру','dk','beeline','казахтелеком','баланс телефона','пополнение','sim','сим']},
-  {id:'home',  name:'Дом',         icon:'🏠', color:'#5856d6', keys:['аренда','квартплата','коммуналка','свет','электричество','газ','вода','отопление','уборка','мебель','техника','ремонт','лампочки','лампы','бытовая химия','порошок','моющее','губки','мешки','бумага','салфетки','полотенца','постель','одеяло','подушка','шторки','коврик']},
-  {id:'other', name:'Другое',      icon:'📦', color:'#8e8e93', keys:[]}
+/* ---------- ВАЛЮТЫ ---------- */
+const CURRENCIES = [
+  { code:'KZT', sym:'₸',   name:'тенге' },
+  { code:'RUB', sym:'₽',   name:'рубль' },
+  { code:'UAH', sym:'₴',   name:'гривна' },
+  { code:'BYN', sym:'Br',  name:'бел. рубль' },
+  { code:'USD', sym:'$',   name:'доллар' },
+  { code:'KGS', sym:'с',   name:'сом' },
+  { code:'UZS', sym:"s'",  name:'сум' },
+  { code:'AMD', sym:'֏',   name:'драм' },
 ];
+const curSym = code => (CURRENCIES.find(c=>c.code===code)||CURRENCIES[0]).sym;
 
-/* ---------- Хранилище ---------- */
-const store = {
-  get balance(){ return parseFloat(localStorage.getItem('balance')) || 0; },
-  set balance(v){ localStorage.setItem('balance', v); },
-  get hasBalance(){ return localStorage.getItem('balance') !== null; },
-  get expenses(){ try { return JSON.parse(localStorage.getItem('expenses')||'[]'); } catch(e){ return []; } },
-  set expenses(v){ localStorage.setItem('expenses', JSON.stringify(v)); }
-};
+/* ---------- КАТЕГОРИИ ---------- */
+const CATS = [
+  { id:'food',    name:'Еда',         emoji:'🍔', color:'#ff9f0a', kw:['кофе','чай','обед','ужин','завтрак','еда','пицца','бургер','шаверма','шаурма','суп','салат','пекарня','хлеб','молоко','хлеб','продукты','магазин еды','столовая','кафе','ресторан','фастфуд','макдоналдс','kfc','пицца','снек','перекус','вода','сок','напиток','булка','пирожок','сдоба','сладкое','шоколад','конфета','мороженое','ягоды','фрукт','овощ'] },
+  { id:'cafe',    name:'Кафе',        emoji:'☕', color:'#bf5af2', kw:['кофейня','старбакс','one price','столовая','бар','паб','пиво','вино','коктейль','шот','коктейль'] },
+  { id:'transport',name:'Транспорт',  emoji:'🚕', color:'#0a84ff', kw:['такси','uber','yandex go','яндекс го','везёт','метро','автобус','трамвай','троллейбус','маршрутка','билет','проездной','топливо','бензин','азс','заправка','мойка','парковка','электричка','поезд','самолёт','авиа'] },
+  { id:'health',  name:'Здоровье',    emoji:'💊', color:'#32d74b', kw:['аптека','таблетка','лекарство','врач','клиника','стоматолог','анализ','витамины','маска','тест'] },
+  { id:'fun',     name:'Развлечения', emoji:'🎬', color:'#ff2d55', kw:['кино','cinema','фильм','подписка','spotify','netflix','youtube','онлайн','игра','steam','концерт','театр','боулинг','бильярд','квест','караоке','парк','аттракцион'] },
+  { id:'home',    name:'Дом',         emoji:'🏠', color:'#5e5ce6', kw:['аренда','квартплата','коммуналка','электричество','газ','вода','интернет','wifi','связь','мтс','мегафон','билайн','tele2','телеком','пополнение','мобильный','ремонт','мебель','техника','бытовая','чистящее','стиральный'] },
+  { id:'clothes', name:'Одежда',      emoji:'👕', color:'#64d2ff', kw:['одежда','футболка','джинсы','обувь','кроссовки','куртка','кофта','штаны','носки','шапка','ремень','сумка','рюкзак','ozon','wildberries','wb','кас пи','kaspi'] },
+  { id:'gifts',   name:'Подарки',     emoji:'🎁', color:'#ff6482', kw:['подарок','презент','цветы','букет','поздравление'] },
+  { id:'other',   name:'Другое',      emoji:'📦', color:'#8e8e93', kw:[] },
+];
+const catById = id => CATS.find(c=>c.id===id) || CATS[CATS.length-1];
 
-/* ---------- Элементы ---------- */
-const $ = id => document.getElementById(id);
-const fmt = n => new Intl.NumberFormat('ru-RU').format(Math.round(n)) + ' ₸';
-const cat = id => CATS.find(c=>c.id===id) || CATS[CATS.length-1];
+/* ---------- СОСТОЯНИЕ ---------- */
+let state = { currency:null, balance:0, expenses:[] };
+let period = 'month';
+let pendingCat = null;
+let previewExpense = null;
 
-/* ---------- Онбординг ---------- */
-$('obStart').addEventListener('click', () => {
-  const v = parseFloat($('obInput').value.replace(',','.'));
-  if (isNaN(v) || v < 0) { toast('Введи корректную сумму'); return; }
-  store.balance = v;
-  showApp();
+function load(){ try { const raw = localStorage.getItem('expApp'); if (raw) state = JSON.parse(raw); } catch(e){} }
+function save(){ localStorage.setItem('expApp', JSON.stringify(state)); }
+
+function fmt(n){ const sym = curSym(state.currency);
+  const v = Math.round(Math.abs(n)*100)/100;
+  return (n<0?'−':'') + v.toLocaleString('ru-RU',{maximumFractionDigits:2}) + ' ' + sym; }
+
+function haptic(type){ if (tg && tg.HapticFeedback) { try { tg.HapticFeedback.impactOccurred(type||'light'); } catch(e){} } }
+
+/* ---------- ОНБОРДИНГ ---------- */
+let chosenCur = 'KZT';
+function renderCurGrid(){
+  document.getElementById('curGrid').innerHTML = CURRENCIES.map(c =>
+    `<div class="cur-item ${c.code===chosenCur?'active':''}" onclick="chooseCur('${c.code}')">
+       <span class="s">${c.sym}</span><span class="n">${c.code}</span>
+     </div>`).join('');
+}
+function chooseCur(code){ chosenCur = code; renderCurGrid(); haptic('light'); }
+function finishOnboard(){
+  const raw = document.getElementById('obBalance').value.replace(/\s/g,'').replace(',','.');
+  const bal = parseFloat(raw) || 0;
+  state.currency = chosenCur;
+  state.balance = bal;
+  state.expenses = state.expenses || [];
+  save();
+  showMain();
   haptic('medium');
-});
-$('obInput').addEventListener('keydown', e => { if (e.key==='Enter') $('obStart').click(); });
+}
+function openSettings(){
+  const raw = prompt('Новый баланс (сейчас ' + fmt(state.balance) + '):', state.balance);
+  if (raw === null) return;
+  const bal = parseFloat(raw.replace(/\s/g,'').replace(',','.')) || 0;
+  state.balance = bal; save(); renderAll();
+}
 
-function showApp(){
-  $('onboarding').style.display = 'none';
-  $('app').style.display = 'block';
+/* ---------- ПАРСЕР ---------- */
+function parseExpense(text){
+  const t = text.trim();
+  if (!t) return null;
+  // ищем число (может быть с пробелами-разделителями тысяч и запятой)
+  const m = t.match(/(\d[\d\s]*(?:[.,]\d{1,2})?)/);
+  if (!m) return null;
+  const amount = parseFloat(m[1].replace(/\s/g,'').replace(',','.'));
+  if (!amount || amount <= 0) return null;
+  let name = (t.slice(0, m.index) + ' ' + t.slice(m.index + m[1].length)).replace(/\s+/g,' ').trim();
+  if (!name) name = 'Трата';
+  const low = name.toLowerCase();
+  let cat = 'other';
+  for (const c of CATS) { if (c.kw.some(k => low.includes(k))) { cat = c.id; break; } }
+  return { name, amount, cat };
+}
+
+/* ---------- ВВОД ---------- */
+function onInput(){
+  const text = document.getElementById('expInput').value;
+  previewExpense = parseExpense(text);
+  pendingCat = previewExpense ? previewExpense.cat : null;
+  renderPreview();
+}
+function renderPreview(){
+  const pv = document.getElementById('preview');
+  const ch = document.getElementById('chips');
+  if (!previewExpense){ pv.style.display='none'; ch.innerHTML=''; return; }
+  pv.style.display='flex';
+  pv.innerHTML = `<span>${catById(previewExpense.cat).emoji} <b>${previewExpense.name}</b> — ${fmt(previewExpense.amount)} <span style="color:var(--sub)">(${catById(previewExpense.cat).name})</span></span>`;
+  ch.innerHTML = CATS.map(c =>
+    `<div class="chip ${c.id===pendingCat?'active':''}" onclick="setPendingCat('${c.id}')">${c.emoji} ${c.name}</div>`).join('');
+}
+function setPendingCat(id){ pendingCat = id; renderPreview(); haptic('light'); }
+function addExpense(){
+  const input = document.getElementById('expInput');
+  const e = parseExpense(input.value);
+  if (!e) return;
+  const rec = { id: Date.now(), name: e.name, amount: e.amount, cat: pendingCat || e.cat, ts: Date.now() };
+  state.expenses.unshift(rec);
+  state.balance -= rec.amount;
+  save();
+  input.value = '';
+  previewExpense = null; pendingCat = null;
+  renderPreview(); renderAll();
+  haptic('medium');
+}
+function delExpense(id){
+  const i = state.expenses.findIndex(x=>x.id===id);
+  if (i < 0) return;
+  state.balance += state.expenses[i].amount;
+  state.expenses.splice(i,1);
+  save(); renderAll(); haptic('light');
+}
+
+/* ---------- ПЕРИОДЫ ---------- */
+function setPeriod(p){
+  period = p;
+  document.querySelectorAll('.pbtn').forEach(b => b.classList.toggle('active', b.dataset.p===p));
+  renderStats();
+}
+
+function periodStart(){
+  if (period==='all') return 0;
+  const d = new Date();
+  if (period==='month'){ d.setDate(1); d.setHours(0,0,0,0); }
+  else { d.setDate(d.getDate()-7); d.setHours(0,0,0,0); }
+  return d.getTime();
+}
+
+/* ---------- РЕНДЕР ---------- */
+function renderAll(){ renderBalance(); renderStats(); renderHistory(); }
+
+function renderBalance(){
+  const el = document.getElementById('balanceAmount');
+  el.textContent = fmt(state.balance);
+  el.classList.toggle('negative', state.balance < 0);
+  const spent = state.expenses.filter(e => e.ts >= new Date(new Date().setDate(1)).setHours(0,0,0,0))
+                             .reduce((s,e)=>s+e.amount,0);
+  document.getElementById('balanceMeta').textContent =
+    `Потрачено за месяц: ${fmt(spent)} · записей: ${state.expenses.length}`;
+}
+
+function renderStats(){
+  const from = periodStart();
+  const sums = {};
+  state.expenses.filter(e=>e.ts>=from).forEach(e => sums[e.cat] = (sums[e.cat]||0) + e.amount);
+  const total = Object.values(sums).reduce((a,b)=>a+b,0);
+  const box = document.getElementById('stats');
+  if (!total){ box.innerHTML = `<div class="empty">Пока нет трат за этот период ✨<br>Добавь первую выше!</div>`; return; }
+  box.innerHTML = CATS.filter(c=>sums[c.id]).map(c => {
+    const v = sums[c.id], pct = Math.round(v/total*100);
+    return `<div class="stat-row">
+      <div class="ic">${c.emoji}</div>
+      <div class="info">
+        <div class="line1"><span class="cat">${c.name} · ${pct}%</span><span class="sum">${fmt(v)}</span></div>
+        <div class="bar"><i style="width:${pct}%;background:${c.color}"></i></div>
+      </div></div>`;
+  }).join('');
+}
+
+function renderHistory(){
+  const box = document.getElementById('history');
+  if (!state.expenses.length){ box.innerHTML = `<div class="empty">История пуста</div>`; return; }
+  const groups = {};
+  state.expenses.forEach(e => {
+    const d = new Date(e.ts);
+    const key = d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+    (groups[key] = groups[key] || []).push(e);
+  });
+  box.innerHTML = Object.entries(groups).map(([date,list]) =>
+    `<div class="date-head">${date}</div>` + list.map(e => {
+      const c = catById(e.cat);
+      return `<div class="exp-row">
+        <div class="ic" style="background:${c.color}22">${c.emoji}</div>
+        <div class="info"><div class="name">${escapeHtml(e.name)}</div><div class="cat">${c.name}</div></div>
+        <div class="sum">${fmt(e.amount)}</div>
+        <button class="del" onclick="delExpense(${e.id})">✕</button>
+      </div>`;
+    }).join('')).join('');
+}
+function escapeHtml(s){ return s.replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
+
+/* ---------- ЭКСПОРТ ---------- */
+function exportCSV(){
+  const rows = [['Дата','Название','Категория','Сумма ('+state.currency+')']];
+  state.expenses.forEach(e => rows.push([
+    new Date(e.ts).toLocaleString('ru-RU'), e.name, catById(e.cat).name, e.amount
+  ]));
+  const csv = '\ufeff' + rows.map(r => r.map(x => '"'+String(x).replace(/"/g,'""')+'"').join(';')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = 'expenses.csv'; a.click();
+}
+
+/* ---------- ТЕМА ---------- */
+function applyTheme(){
+  const p = tg ? tg.themeParams : {};
+  const dark = tg ? (tg.colorScheme === 'dark') : (window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.classList.toggle('dark', dark);
+  if (p.bg_color) document.documentElement.style.setProperty('--bg', p.bg_color);
+  if (p.secondary_bg_color) document.documentElement.style.setProperty('--card', p.secondary_bg_color);
+  if (p.text_color) document.documentElement.style.setProperty('--text', p.text_color);
+  if (p.hint_color) document.documentElement.style.setProperty('--sub', p.hint_color);
+}
+
+/* ---------- СТАРТ ---------- */
+load();
+applyTheme();
+if (tg && tg.onEvent) tg.onEvent('themeChanged', applyTheme);
+if (state.currency === null || state.currency === undefined){
+  document.getElementById('onboard').style.display = 'block';
+  document.getElementById('main').style.display = 'none';
+  renderCurGrid();
+} else {
+  showMain();
+}
+function showMain(){
+  document.getElementById('onboard').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
   renderAll();
 }
-
-/* ---------- Парсер ввода ---------- */
-function parseInput(text){
-  const t = text.trim().toLowerCase();
-  const m = t.match(/(-?\d+(?:[.,]\d+)?)/);
-  if (!m) return null;
-  const amount = Math.abs(parseFloat(m[1].replace(',','.')));
-  if (!amount) return null;
-  const name = t.replace(m[1], '').replace(/[-–—_=]+/g,' ').replace(/\s+/g,' ').trim();
-  let cId = 'other';
-  for (const c of CATS){ if (c.keys.some(k => t.includes(k))) { cId = c.id; break; } }
-  return { name: name || 'Расход', amount, cat: cId };
-}
-
-/* ---------- Превью и чипы ---------- */
-let pendingCat = null;
-$('expInput').addEventListener('input', () => {
-  const p = parseInput($('expInput').value);
-  const pv = $('preview');
-  if (!p){ pv.classList.remove('show'); pendingCat = null; return; }
-  pendingCat = p.cat;
-  pv.innerHTML = `<span class="preview-label">${p.name}, ${fmt(p.amount)} →</span>` +
-    CATS.map(c => `<button class="chip ${c.id===pendingCat?'active':''}" data-cat="${c.id}">${c.icon} ${c.name}</button>`).join('');
-  pv.classList.add('show');
-  pv.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
-    pendingCat = b.dataset.cat;
-    pv.querySelectorAll('.chip').forEach(x => x.classList.toggle('active', x.dataset.cat===pendingCat));
-    haptic('light');
-  }));
-});
-$('expInput').addEventListener('keydown', e => { if (e.key==='Enter') addExpense(); });
-
-/* ---------- Добавление траты ---------- */
-$('addBtn').addEventListener('click', addExpense);
-function addExpense(){
-  const p = parseInput($('expInput').value);
-  if (!p){ toast('Напиши, например: кофе 350'); return; }
-  const list = store.expenses;
-  list.unshift({ name: p.name, amount: p.amount, cat: pendingCat || p.cat, ts: Date.now() });
-  store.expenses = list;
-  store.balance = store.balance - p.amount;
-  $('expInput').value = ''; $('preview').classList.remove('show'); pendingCat = null;
-  renderAll(); haptic('medium');
-  toast(`Добавлено: ${p.name}, ${fmt(p.amount)}`);
-}
-
-/* ---------- Удаление траты (возврат в баланс) ---------- */
-function deleteExpense(ts){
-  const list = store.expenses;
-  const i = list.findIndex(e => e.ts === ts);
-  if (i === -1) return;
-  store.balance = store.balance + list[i].amount;
-  list.splice(i,1);
-  store.expenses = list;
-  renderAll(); haptic('light');
-}
-
-/* ---------- Изменение баланса ---------- */
-$('editBalance').addEventListener('click', () => {
-  const v = prompt('Текущий баланс:', store.balance);
-  if (v === null) return;
-  const n = parseFloat(v.replace(',','.'));
-  if (!isNaN(n)) { store.balance = n; renderAll(); haptic('light'); }
-});
-
-/* ---------- Рендер ---------- */
-function renderAll(){
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-  const exps = store.expenses;
-  const monthSum = exps.filter(e => e.ts >= monthStart).reduce((s,e) => s+e.amount, 0);
-  const b = store.balance;
-
-  const bv = $('balanceValue');
-  bv.textContent = fmt(b);
-  bv.classList.toggle('negative', b < 0);
-  $('balanceMeta').textContent = `Потрачено в этом месяце: ${fmt(monthSum)} · записей: ${exps.filter(e=>e.ts>=monthStart).length}`;
-
-  /* Статистика */
-  const byCat = {};
-  exps.filter(e => e.ts >= monthStart).forEach(e => byCat[e.cat] = (byCat[e.cat]||0) + e.amount);
-  const max = Math.max(1, ...Object.values(byCat));
-  const total = Object.values(byCat).reduce((s,v)=>s+v,0);
-  const order = CATS.filter(c => byCat[c.id]).sort((a,b) => byCat[b.id]-byCat[a.id]);
-  $('stats').innerHTML = order.length
-    ? order.map(c => `
-      <div class="stat-row">
-        <div class="stat-icon">${c.icon}</div>
-        <div class="stat-info">
-          <div class="stat-top"><span class="stat-name">${c.name}</span>
-          <span class="stat-sum">${fmt(byCat[c.id])} · ${Math.round(byCat[c.id]/total*100)}%</span></div>
-          <div class="bar"><div class="bar-fill" style="width:${byCat[c.id]/max*100}%;background:${c.color}"></div></div>
-        </div>
-      </div>`).join('')
-    : `<div class="empty">Пока нет трат за этот месяц.<br>Добавь первую выше ☝️</div>`;
-
-  /* История по дням */
-  const days = {};
-  exps.forEach(e => {
-    const d = new Date(e.ts);
-    const key = d.toISOString().slice(0,10);
-    (days[key] = days[key] || []).push(e);
-  });
-  const labels = ['вчера','сегодня','завтра'];
-  const monthNames = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-  let html = '';
-  Object.keys(days).sort().reverse().forEach(key => {
-    const [y,m,d] = key.split('-').map(Number);
-    const date = new Date(y, m-1, d);
-    const diff = Math.round((new Date().setHours(0,0,0,0) - date.getTime())/86400000);
-    const label = diff===0?'Сегодня':diff===1?'Вчера':diff<7?`${diff} дн. назад`:`${d} ${monthNames[m-1]}`;
-    html += `<div class="day-label">${label}</div>`;
-    days[key].forEach(e => {
-      const c = cat(e.cat);
-      html += `<div class="exp-item">
-        <div class="exp-icon">${c.icon}</div>
-        <div class="exp-info">
-          <div class="exp-name">${esc(e.name)}</div>
-          <div class="exp-cat">${c.name}</div>
-        </div>
-        <div class="exp-right"><div class="exp-amount">−${fmt(e.amount)}</div></div>
-        <button class="exp-del" data-ts="${e.ts}">✕</button>
-      </div>`;
-    });
-  });
-  $('history').innerHTML = html || `<div class="empty">История пуста</div>`;
-  $('history').querySelectorAll('.exp-del').forEach(b =>
-    b.addEventListener('click', () => deleteExpense(Number(b.dataset.ts))));
-}
-function esc(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-
-/* ---------- CSV ---------- */
-$('csvBtn').addEventListener('click', () => {
-  const rows = [['Дата','Название','Категория','Сумма']];
-  store.expenses.forEach(e => rows.push([
-    new Date(e.ts).toLocaleString('ru-RU'), e.name, cat(e.cat).name, e.amount
-  ]));
-  const csv = '\uFEFF' + rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
-  a.download = 'expenses.csv'; a.click();
-  haptic('light');
-});
-
-/* ---------- Утилиты ---------- */
-function toast(msg){
-  const t = $('toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.remove('show'), 2200);
-}
-function haptic(kind){ try { tg?.HapticFeedback.impactOccurred(kind); } catch(e){} }
-
-/* ---------- Старт ---------- */
-if (store.hasBalance) showApp();
 </script>
 </body>
 </html>
