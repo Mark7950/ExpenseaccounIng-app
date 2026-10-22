@@ -2,473 +2,465 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Мои траты</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Траты</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-:root{
-  --bg:#f2f4f8; --card:#ffffff; --text:#1c1e21; --muted:#7a8088;
-  --accent:#2e6bd6; --accent2:#5b9def; --line:#e8ebf0;
-  --chip:#eef2f8; --danger:#e5484d;
-  --shadow:0 2px 12px rgba(30,60,120,.08);
-}
-[data-theme="dark"]{
-  --bg:#17212b; --card:#232e3c; --text:#f5f5f5; --muted:#8fa0b3;
-  --accent:#4d8de8; --accent2:#7ab0f5; --line:#2f3d4d;
-  --chip:#2c3a4b; --danger:#ff6b6e;
-  --shadow:0 2px 12px rgba(0,0,0,.25);
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  background:var(--bg);color:var(--text);transition:background .25s,color .25s;
-  min-height:100vh}
-.screen{display:none;max-width:520px;margin:0 auto;padding:16px 16px 40px}
-.screen.active{display:block}
+  :root{
+    --accent:#3b82f6; --accent2:#1d4ed8; --danger:#ef4444;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    transition:background .25s,color .25s; overscroll-behavior:none}
+  body.theme-light{--bg:#f2f4f8;--card:#ffffff;--text:#1c1e29;--muted:#8b90a0;--border:#e6e8ef;--chipbg:#eef1f6;--shadow:0 6px 20px rgba(30,40,70,.08)}
+  body.theme-dark{--bg:#1a1c26;--card:#252837;--text:#f2f3f8;--muted:#9aa0b4;--border:#333750;--chipbg:#2e3245;--shadow:0 6px 20px rgba(0,0,0,.35)}
+  .wrap{max-width:480px;margin:0 auto;padding:14px 16px 90px}
 
-/* ===== шапки ===== */
-.app-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.app-header h1{font-size:20px;font-weight:700}
-.icon-btn{width:38px;height:38px;border-radius:12px;border:none;background:var(--card);
-  color:var(--text);font-size:19px;box-shadow:var(--shadow);cursor:pointer;
-  display:flex;align-items:center;justify-content:center}
-.hist-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.hist-header h1{font-size:20px;font-weight:700;flex:1}
+  /* ---------- header ---------- */
+  .top{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 14px}
+  .top h1{font-size:19px;font-weight:800}
+  .gear{width:36px;height:36px;border:none;border-radius:50%;background:var(--chipbg);color:var(--text);
+    font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
-/* ===== онбординг ===== */
-#onboarding{max-width:520px;margin:0 auto;padding:40px 20px}
-.onb-emoji{font-size:48px;text-align:center;margin-bottom:12px}
-.onb-title{font-size:24px;font-weight:700;text-align:center;margin-bottom:6px}
-.onb-sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:26px}
-.onb-label{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px}
-.curr-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:22px}
-.curr-btn{background:var(--card);border:2px solid var(--line);border-radius:10px;
-  padding:9px 4px;font-size:15px;font-weight:600;color:var(--text);cursor:pointer;
-  text-align:center;transition:border-color .15s,background .15s}
-.curr-btn .curr-name{display:block;font-size:9px;font-weight:500;color:var(--muted);margin-top:2px}
-.curr-btn.sel{border-color:var(--accent);background:var(--chip)}
-.balance-input{width:100%;background:var(--card);border:2px solid var(--line);border-radius:12px;
-  padding:11px 14px;font-size:17px;color:var(--text);outline:none;margin-bottom:8px}
-.balance-input:focus{border-color:var(--accent)}
-.onb-hint{font-size:13px;color:var(--muted);text-align:center;margin-bottom:22px}
-.btn-primary{width:100%;padding:13px;border:none;border-radius:12px;background:var(--accent);
-  color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+  /* ---------- balance card ---------- */
+  .balance-card{background:linear-gradient(135deg,#60a5fa 0%,#2563eb 55%,#1e40af 100%);
+    border-radius:18px;padding:22px 20px;color:#fff;box-shadow:0 10px 26px rgba(37,99,235,.35)}
+  .balance-card .lbl{font-size:12.5px;opacity:.85;font-weight:600;letter-spacing:.3px}
+  .balance-card .val{font-size:30px;font-weight:800;margin-top:6px;letter-spacing:.4px}
+  .balance-card .val.negative{color:#fecaca}
+  .balance-card .hint{margin-top:10px;font-size:12px;opacity:.75}
 
-/* ===== карточка баланса ===== */
-.balance-card{border-radius:18px;padding:20px;color:#fff;margin-bottom:18px;
-  background:linear-gradient(135deg,#5b9def,#2e6bd6);
-  box-shadow:0 8px 24px rgba(46,107,214,.35)}
-.balance-card.negative{background:linear-gradient(135deg,#f38a8d,#c93a40);box-shadow:0 8px 24px rgba(201,58,64,.35)}
-.balance-label{font-size:13px;opacity:.85;margin-bottom:4px}
-.balance-value{font-size:34px;font-weight:700;letter-spacing:-.5px}
-.balance-sub{font-size:12px;opacity:.75;margin-top:6px;cursor:pointer}
+  /* ---------- input ---------- */
+  .input-row{display:flex;gap:8px;margin-top:14px}
+  .main-input{flex:1;border:1.5px solid var(--border);background:var(--card);color:var(--text);
+    border-radius:13px;padding:12px 14px;font-size:15px;outline:none}
+  .main-input:focus{border-color:var(--accent)}
+  .add-btn{border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+    border-radius:13px;padding:0 18px;font-size:15px;font-weight:700;cursor:pointer}
+  .preview{margin-top:8px;font-size:13px;color:var(--muted);min-height:18px}
+  .preview b{color:var(--text)}
 
-/* ===== ввод ===== */
-.input-card{background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin-bottom:20px}
-.input-row{display:flex;gap:8px}
-.exp-input{flex:1;background:var(--chip);border:none;border-radius:12px;padding:11px 14px;
-  font-size:15px;color:var(--text);outline:none}
-.add-btn{background:var(--accent);color:#fff;border:none;border-radius:12px;
-  padding:0 18px;font-size:15px;font-weight:600;cursor:pointer}
-.preview{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;
-  color:var(--muted);flex-wrap:wrap}
-.preview-amount{font-weight:700;color:var(--text)}
-.chip-row{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding-bottom:2px}
-.chip{flex-shrink:0;padding:5px 12px;border-radius:20px;border:1.5px solid var(--line);
-  background:var(--card);font-size:12px;color:var(--text);cursor:pointer;white-space:nowrap}
-.chip.sel{border-color:var(--accent);background:var(--chip);font-weight:600}
+  /* ---------- chips ---------- */
+  .chips{display:flex;gap:6px;overflow-x:auto;padding:6px 0 2px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;border:1.5px solid var(--border);background:var(--card);color:var(--text);
+    border-radius:20px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .chip.active{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
 
-/* ===== секции ===== */
-.section-title{font-size:16px;font-weight:700;margin-bottom:12px}
-.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.section-head .section-title{margin-bottom:0}
-.arrow-btn{width:34px;height:34px;border-radius:10px;border:none;background:var(--card);
-  color:var(--muted);font-size:16px;box-shadow:var(--shadow);cursor:pointer;
-  display:flex;align-items:center;justify-content:center}
-.stat-row{margin-bottom:12px}
-.stat-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
-.stat-top .cat-name{font-weight:600}
-.stat-bar{height:7px;border-radius:4px;background:var(--line);overflow:hidden}
-.stat-fill{height:100%;border-radius:4px;transition:width .4s}
+  /* ---------- section cards ---------- */
+  .sec{margin-top:18px}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .sec-head h2{font-size:15px;font-weight:700}
+  .arrow-btn{width:30px;height:30px;border:none;border-radius:50%;background:var(--chipbg);color:var(--text);
+    font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .card{background:var(--card);border-radius:14px;box-shadow:var(--shadow)}
+  .cat-row{display:flex;align-items:center;gap:10px;padding:10px 14px}
+  .cat-row .emoji{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto}
+  .cat-info{flex:1;min-width:0}
+  .cat-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600}
+  .cat-top .sum{font-variant-numeric:tabular-nums}
+  .bar{height:5px;border-radius:3px;background:var(--chipbg);margin-top:6px;overflow:hidden}
+  .bar>i{display:block;height:100%;border-radius:3px}
+  .pct{font-size:11.5px;color:var(--muted);margin-top:3px}
 
-/* ===== операции ===== */
-.op-row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:14px;
-  padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
-.op-emoji{width:38px;height:38px;border-radius:11px;background:var(--chip);
-  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.op-info{flex:1;min-width:0}
-.op-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.op-cat{font-size:11px;color:var(--muted)}
-.op-right{text-align:right}
-.op-amount{font-size:14px;font-weight:700}
-.op-del{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;
-  padding:4px;opacity:.6}
-.empty{text-align:center;color:var(--muted);font-size:14px;padding:30px 0}
+  .op-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border)}
+  .op-row:last-child{border-bottom:none}
+  .op-emoji{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto}
+  .op-info{flex:1;min-width:0}
+  .op-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .op-cat{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .op-sum{font-size:14.5px;font-weight:700;font-variant-numeric:tabular-nums}
+  .del{border:none;background:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px 2px 4px 8px}
+  .empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:13.5px}
 
-/* ===== история: месяц и даты ===== */
-.month-nav{display:flex;align-items:center;justify-content:space-between;
-  background:var(--card);border-radius:12px;padding:8px 12px;box-shadow:var(--shadow);margin-bottom:16px}
-.month-label{font-size:15px;font-weight:600}
-.month-arrow{width:32px;height:32px;border:none;background:none;color:var(--accent);
-  font-size:17px;cursor:pointer}
-.day-group{margin-bottom:16px}
-.day-title{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
-.history-total{display:flex;justify-content:space-between;align-items:center;
-  background:var(--card);border-radius:14px;padding:14px;margin-bottom:16px;box-shadow:var(--shadow)}
-.history-total .lt-label{font-size:13px;color:var(--muted)}
-.history-total .lt-value{font-size:18px;font-weight:700}
+  /* ---------- onboarding ---------- */
+  .screen{display:none}
+  .screen.active{display:block}
+  .ob-card{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:26px 20px;margin-top:26vh;text-align:center}
+  .ob-card .wave{font-size:40px}
+  .ob-card h2{font-size:20px;font-weight:800;margin-top:10px}
+  .ob-card p{font-size:13.5px;color:var(--muted);margin-top:6px;line-height:1.45}
+  .ob-label{margin-top:18px;font-size:12.5px;font-weight:600;color:var(--muted);text-align:left}
+  .ob-input{width:100%;margin-top:6px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);
+    border-radius:11px;padding:10px 13px;font-size:17px;font-weight:600;outline:none;text-align:center}
+  .ob-input:focus{border-color:var(--accent)}
+  .cur-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+  .cur-btn{border:1.5px solid var(--border);background:var(--card);color:var(--text);border-radius:11px;
+    padding:7px 4px;cursor:pointer;text-align:center}
+  .cur-btn .sym{font-size:16px;font-weight:700;display:block;line-height:1.2}
+  .cur-btn .nm{font-size:10px;color:var(--muted);margin-top:2px;display:block}
+  .cur-btn.active{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent)}
+  .ob-btn{width:100%;margin-top:20px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;border-radius:13px;padding:13px;font-size:15.5px;font-weight:700;cursor:pointer}
+  .ob-note{margin-top:12px;font-size:12.5px;color:var(--muted)}
 
-/* ===== шторки ===== */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50}
-.overlay.open{display:block}
-.sheet{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;
-  background:var(--card);border-radius:20px 20px 0 0;padding:18px 20px 26px;z-index:51;
-  transform:translateY(100%);transition:transform .25s}
-.sheet.open{transform:translateY(0)}
-.sheet-title{font-size:17px;font-weight:700;margin-bottom:16px;text-align:center}
-.sheet-row{display:flex;align-items:center;justify-content:space-between;
-  padding:13px 4px;border-bottom:1px solid var(--line);font-size:15px;cursor:pointer}
-.sheet-row:last-child{border-bottom:none}
-.sheet-row .arr{color:var(--muted)}
-.back-row{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--accent);
-  padding:4px 0 12px;cursor:pointer;font-weight:600}
-.theme-opt,.curr-opt{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:8px;
-  font-size:15px;cursor:pointer}
-.theme-opt.sel,.curr-opt.sel{border-color:var(--accent);background:var(--chip)}
+  /* ---------- sheets ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
+  .overlay.show{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;left:0;right:0;bottom:0;transform:translateY(105%);transition:transform .25s;
+    background:var(--card);border-radius:20px 20px 0 0;padding:16px 18px 26px;z-index:60;max-width:480px;margin:0 auto}
+  .sheet.show{transform:translateY(0)}
+  .sheet h3{font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+  .sheet .back{border:none;background:var(--chipbg);color:var(--text);border-radius:9px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer}
+  .menu-item{display:flex;align-items:center;justify-content:space-between;width:100%;
+    background:var(--chipbg);border:none;border-radius:13px;padding:14px 16px;margin-top:10px;
+    color:var(--text);font-size:14.5px;font-weight:600;cursor:pointer}
+  .theme-opts{display:flex;gap:8px;margin-top:12px}
+  .theme-opt{flex:1;border:1.5px solid var(--border);background:var(--card);color:var(--text);
+    border-radius:11px;padding:11px 6px;font-size:12.5px;font-weight:600;cursor:pointer}
+  .theme-opt.active{border-color:var(--accent);box-shadow:0 0 0 1.5px var(--accent)}
+  .sheet .cur-grid{margin-top:12px}
+
+  /* ---------- history page ---------- */
+  .page{position:fixed;inset:0;background:var(--bg);z-index:40;transform:translateX(100%);transition:transform .25s;overflow-y:auto}
+  .page.show{transform:translateX(0)}
+  .page-inner{max-width:480px;margin:0 auto;padding:14px 16px 40px}
+  .page-top{display:flex;align-items:center;gap:10px;padding:4px 0 14px}
+  .page-top h2{font-size:18px;font-weight:800;flex:1}
+  .month-nav{display:flex;align-items:center;justify-content:space-between;background:var(--card);
+    border-radius:12px;padding:9px 12px;box-shadow:var(--shadow)}
+  .month-nav span{font-size:14.5px;font-weight:700}
+  .m-arrow{border:none;background:var(--chipbg);color:var(--text);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:14px}
+  .month-sum{margin-top:12px;text-align:center;font-size:13px;color:var(--muted)}
+  .month-sum b{display:block;font-size:20px;color:var(--text);margin-top:2px}
+  .day-label{margin:16px 2px 6px;font-size:12px;font-weight:700;color:var(--muted)}
 </style>
 </head>
-<body>
+<body class="theme-light">
 
-<!-- ОНБОРДИНГ -->
-<div id="onboarding">
-  <div class="onb-emoji">👋</div>
-  <div class="onb-title">Добро пожаловать!</div>
-  <div class="onb-sub">Настроим учёт твоих денег за 30 секунд</div>
-  <div class="onb-label">Выбери валюту</div>
-  <div class="curr-grid" id="currGrid"></div>
-  <div class="onb-label">Сколько денег у тебя на данный момент?</div>
-  <input type="text" inputmode="decimal" class="balance-input" id="onbBalance" placeholder="0">
-  <div class="onb-hint">С этой суммы мы начнём вести твой баланс 💰</div>
-  <button class="btn-primary" id="onbStart">Начать</button>
-</div>
-
-<!-- ГЛАВНЫЙ ЭКРАН -->
-<div id="main" class="screen">
-  <div class="app-header">
-    <h1>Мои траты</h1>
-    <button class="icon-btn" onclick="openSheet('settings')">⚙</button>
-  </div>
-  <div class="balance-card" id="balanceCard">
-    <div class="balance-label">Осталось на балансе</div>
-    <div class="balance-value" id="balanceValue">0</div>
-    <div class="balance-sub" onclick="openBalanceEdit()">Нажми, чтобы изменить баланс</div>
-  </div>
-  <div class="input-card">
-    <div class="input-row">
-      <input type="text" class="exp-input" id="expInput" placeholder="кофе 350">
-      <button class="add-btn" id="addBtn">+</button>
+<!-- ======== ЭКРАН 1: ОНБОРДИНГ ======== -->
+<div class="screen active" id="scr-onboard">
+  <div class="wrap">
+    <div class="ob-card">
+      <div class="wave">👋</div>
+      <h2>Добро пожаловать!</h2>
+      <p>Сколько денег у тебя на данный момент?</p>
+      <div class="ob-label">Твой баланс</div>
+      <input class="ob-input" id="ob-balance" type="text" inputmode="decimal" placeholder="0">
+      <div class="ob-label">Валюта</div>
+      <div class="cur-grid" id="ob-currencies"></div>
+      <button class="ob-btn" id="ob-start">Начать</button>
+      <div class="ob-note">С этой суммы мы начнём вести твой баланс 💰</div>
     </div>
-    <div class="preview" id="preview" style="display:none"></div>
-    <div class="chip-row" id="chipRow" style="display:none"></div>
   </div>
-  <div class="section-title">Траты в этом месяце</div>
-  <div id="stats"></div>
-  <div class="section-head" style="margin-top:24px">
-    <div class="section-title">Последние операции</div>
-    <button class="arrow-btn" onclick="showHistory()">→</button>
-  </div>
-  <div id="recent"></div>
 </div>
 
-<!-- СТРАНИЦА ИСТОРИИ -->
-<div id="history" class="screen">
-  <div class="hist-header">
-    <button class="icon-btn" onclick="showMain()">←</button>
-    <h1>История</h1>
+<!-- ======== ЭКРАН 2: ГЛАВНЫЙ ======== -->
+<div class="screen" id="scr-main">
+  <div class="wrap">
+    <div class="top">
+      <h1>Траты</h1>
+      <button class="gear" id="btn-gear">⚙️</button>
+    </div>
+
+    <div class="balance-card">
+      <div class="lbl">ОСТАЛОСЬ НА БАЛАНСЕ</div>
+      <div class="val" id="balance-val">0 ₸</div>
+      <div class="hint" id="change-balance">Нажми, чтобы изменить баланс</div>
+    </div>
+
+    <div class="sec">
+      <div class="input-row">
+        <input class="main-input" id="exp-input" type="text" placeholder="кофе 350" inputmode="text">
+        <button class="add-btn" id="btn-add">+</button>
+      </div>
+      <div class="preview" id="preview"></div>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><h2>Статистика</h2></div>
+      <div class="card" id="stats"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <h2>Последние операции</h2>
+        <button class="arrow-btn" id="btn-history">→</button>
+      </div>
+      <div class="card" id="recent"></div>
+    </div>
   </div>
-  <div class="month-nav">
-    <button class="month-arrow" onclick="shiftMonth(-1)">‹</button>
-    <div class="month-label" id="monthLabel"></div>
-    <button class="month-arrow" onclick="shiftMonth(1)">›</button>
-  </div>
-  <div class="history-total">
-    <div class="lt-label">Всего за месяц</div>
-    <div class="lt-value" id="monthTotal">0</div>
-  </div>
-  <div id="historyList"></div>
 </div>
 
-<!-- ШТОРКИ -->
-<div class="overlay" id="overlay" onclick="closeSheets()"></div>
-<div class="sheet" id="sheet-settings">
-  <div class="sheet-title">Настройки</div>
-  <div class="sheet-row" onclick="openSheet('currency')">Валюта <span class="arr" id="curHint">₸ ›</span></div>
-  <div class="sheet-row" onclick="openSheet('theme')">Тема <span class="arr" id="thHint">Системная ›</span></div>
+<!-- ======== ЭКРАН 3: ИСТОРИЯ ======== -->
+<div class="page" id="scr-history">
+  <div class="page-inner">
+    <div class="page-top">
+      <button class="arrow-btn" id="btn-back">←</button>
+      <h2>История</h2>
+    </div>
+    <div class="month-nav">
+      <button class="m-arrow" id="m-prev">‹</button>
+      <span id="m-label">Октябрь 2026</span>
+      <button class="m-arrow" id="m-next">›</button>
+    </div>
+    <div class="month-sum" id="m-sum"></div>
+    <div id="m-list"></div>
+  </div>
+</div>
+
+<!-- ======== МЕНЮ И ШТОРКИ ======== -->
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="sheet-menu">
+  <h3>Настройки</h3>
+  <button class="menu-item" id="mi-currency">💱 Валюта <span id="cur-current">₸</span></button>
+  <button class="menu-item" id="mi-theme">🎨 Тема <span id="theme-current">Системная</span></button>
 </div>
 <div class="sheet" id="sheet-currency">
-  <div class="back-row" onclick="openSheet('settings')">‹ Назад</div>
-  <div class="sheet-title">Валюта</div>
-  <div id="currOptions"></div>
+  <h3><span>Выбор валюты</span><button class="back" id="cur-back">‹ Назад</button></h3>
+  <div class="cur-grid" id="menu-currencies"></div>
 </div>
 <div class="sheet" id="sheet-theme">
-  <div class="back-row" onclick="openSheet('settings')">‹ Назад</div>
-  <div class="sheet-title">Тема</div>
-  <div class="theme-opt" data-t="light" onclick="setTheme('light')">☀️ Светлая</div>
-  <div class="theme-opt" data-t="dark" onclick="setTheme('dark')">🌙 Тёмная</div>
-  <div class="theme-opt" data-t="system" onclick="setTheme('system')">⚙ Системная</div>
+  <h3><span>Тема</span><button class="back" id="theme-back">‹ Назад</button></h3>
+  <div class="theme-opts">
+    <button class="theme-opt" data-theme="light">☀️ Светлая</button>
+    <button class="theme-opt" data-theme="dark">🌙 Тёмная</button>
+    <button class="theme-opt" data-theme="system">⚙️ Системная</button>
+  </div>
 </div>
 <div class="sheet" id="sheet-balance">
-  <div class="sheet-title">Изменить баланс</div>
-  <input type="text" inputmode="decimal" class="balance-input" id="balEditInput" placeholder="Новая сумма">
-  <button class="btn-primary" style="margin-top:10px" onclick="saveBalance()">Сохранить</button>
+  <h3><span>Изменить баланс</span><button class="back" id="bal-back">‹ Назад</button></h3>
+  <input class="ob-input" id="bal-input" type="text" inputmode="decimal" style="margin-top:14px;text-align:left" placeholder="Новая сумма">
+  <button class="ob-btn" id="bal-save" style="margin-top:14px">Сохранить</button>
 </div>
 
 <script>
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 if (tg) { tg.ready(); tg.expand(); }
 
-/* ---------- данные ---------- */
+/* ---------- категории и словарь ---------- */
+const CATS = {
+  food:      {n:'Еда и напитки',    e:'🍔', c:'#ff8a3d', w:['кофе','шаурма','шаверма','пицца','бургер','гамбургер','роллы','суши','обед','ужин','завтрак','ланч','перекус','ресторан','кафе','столовая','фастфуд','макдоналдс','кфс','бургер кинг','вкусно и точка','доминос','пепси','кола','лимонад','сок','вода','чай','какао','шоколад','сникерс','снек','чипсы','печенье','пряники','хлеб','батон','булочка','пирожок','сэндвич','хот-дог','молоко','кефир','ряженка','йогурт','сметана','творог','сыр','колбаса','сосиски','мясо','фарш','курица','куриное','говядина','рыба','консервы','тушенка','овощи','фрукты','бананы','яблоки','груши','апельсины','мандарины','виноград','картошка','помидоры','огурцы','лук','чеснок','капуста','морковь','зелень','крупа','гречка','рис','овсянка','макароны','спагетти','вермишель','сахар','соль','перец','мука','масло','майонез','кетчуп','соевый соус','уксус','сода','дрожжи','лапша','суп','пельмени','вареники','готовая еда','маринад','сухарики','орехи','семечки','сухофрукты','изюм','мед','варенье','сгущенка','мороженое','энергетик','газировка','минералка','батончик','гурме','азия','пельменная','шаурмичная','яндекс еда','доставка еды','питьевая вода','минеральная вода','кофе с собой','горячий шоколад','сухой завтрак','хлопья','продукты','супермаркет']},
+  home:      {n:'Жилье',            e:'🏠', c:'#4f8cff', w:['аренда','квартплата','коммуналка','коммунальные','электричество','электроэнергия','отопление','газ','домофон','интернет','мусор','жэу','оси','кск','ркц','ипотека','мобильная связь','сотовая связь','пополнение телефона','пополнение счета','пополнение счёта','мтс','билайн','актив','кселл','tele2','алтел','горячая вода','холодная вода','вода горячая','вода холодная']},
+  transport: {n:'Транспорт',        e:'🚕', c:'#f5b53d', w:['такси','яндекс такси','indrive','inDrive','убер','uber','bolt','автобус','маршрутка','троллейбус','трамвай','метро','электричка','поезд','бензин','заправка','аи95','аи92','аи80','дизель','пропан','моторное масло','антифриз','шиномонтаж','мойка авто','автомойка','парковка','паркинг','проездной','онай','транспортная карта','самокат','электросамокат','юранд','автобусный','проезд','жд билеты','масло моторное']},
+  beauty:    {n:'Красота',          e:'💅', c:'#ff6b9d', w:['маникюр','педикюр','стрижка','парикмахер','барбер','салон красоты','покраска волос','окрашивание','косметика','помада','тушь','духи','парфюм','укладка','ламинирование','ботокс','наращивание ресниц','ресницы','брови','эпиляция','шугаринг','крем для лица','сыворотка','маска для волос','маска для лица']},
+  health:    {n:'Здоровье',         e:'💊', c:'#4dd599', w:['аптека','лекарства','таблетки','врач','прием врача','терапевт','стоматолог','зубы','анализы','узи','мрт','рентген','витамины','бады','прививка','клиника','поликлиника','больница','глюкометр','пластырь','бинт','йод','зеленка','градусник','массаж','массаж','терапия','медцентр']},
+  sport:     {n:'Спорт',            e:'⚽', c:'#2ed573', w:['зал','фитнес','тренажерный','протеин','спортпит','абонемент','бассейн','йога','пилатес','футбол','баскетбол','волейбол','мяч','турник','гантель','гантели','штанга','бокс','карате','плавание','беговая дорожка','коврик для йоги']},
+  clothes:   {n:'Одежда и обувь',   e:'👕', c:'#a55eea', w:['одежда','футболка','рубашка','джинсы','штаны','брюки','куртка','пальто','шуба','свитер','худи','кроссовки','кеды','туфли','ботинки','сапоги','носки','белье','нижнее белье','шапка','шарф','перчатки','ремень','рюкзак','футболка','шорты','платье','юбка','зара','zara','остин','ostin','глория','gloria','кроссовок','кожаная куртка']},
+  subs:      {n:'Платные подписки', e:'📺', c:'#ff4d6b', w:['подписка','спотифай','spotify','нетфликс','netflix','ютуб премиум','youtube premium','кинотеатр онлайн','кинопоиск','иви','окко','applemusic','apple music','яндекс плюс','яндекс музыка','музыкальная подписка','icloud','айклауд','гугл диск','онлайн-кинотеатр','kinopoisk']},
+  house:     {n:'Товары для дома',  e:'🧴', c:'#5bc8f5', w:['посуда','тарелки','кастрюля','сковорода','чайник','полотенце','постельное','одеяло','подушка','швабра','моющее средство','порошок','мусорные пакеты','пакеты','салфетки','туалетная бумага','свечи','лампочка','лампа','батарейки','удлинитель','средство для мытья','стиральный порошок','кондиционер для белья','шторки','ковер','постельное белье','средства для дома']},
+  fun:       {n:'Развлечение',      e:'🎮', c:'#9b59b6', w:['кино','кинотеатр','билеты','концерт','театр','музей','караоке','боулинг','бильярд','квест','каток','аттракционы','аквапарк','игры','game','xbox','playstation','psn','steam','настольные игры','дискотека','ночной клуб','книги','книга','журнал','комиксы','боулинг']},
+  pets:      {n:'Домашние животные',e:'🐾', c:'#f9a825', w:['корм','корм для кошек','корм для собак','кошачий','собачий','ветеринар','ветклиника','кошка','собака','кот','наполнитель','клетка','поводок','намордник','витамины для животных','лежанка','когтеточка','груминг']},
+  care:      {n:'Личный уход',      e:'🧼', c:'#26c6da', w:['зубная щетка','зубная паста','зубная нить','шампунь','гель для душа','мыло','дезодорант','бритва','бритвенные станки','крем для бритья','ополаскиватель','ватные палочки','ватные диски','очки','линзы','раствор для линз','расческа','гребень','ласть','пена для ванн','ванна']},
+  edu:       {n:'Образование',      e:'📚', c:'#42a5f5', w:['курсы','учеба','учёба','репетитор','обучение','учебник','школа','вуз','университет','семинар','вебинар','сертификат','канцелярия','ручка','тетрадь','карандаши','школьные принадлежности','языковые курсы','онлайн курс','диплом']},
+  travel:    {n:'Путешествие',      e:'✈️', c:'#7e57c2', w:['отель','гостиница','хостел','авиабилеты','билет на самолет','самолет','бронирование','поездка','отпуск','тур','экскурсия','букинг','booking','airbnb','туристическая страховка','виза','путевка']},
+  tax:       {n:'Налоги',           e:'🏛️', c:'#78909c', w:['налог','налоги','штраф гибдд','госпошлина','налоговая','пеня','платеж в бюджет','пошлина','обязательный платеж']},
+  repair:    {n:'Ремонт',           e:'🛠️', c:'#8d6e63', w:['обои','краска','гипсокартон','ламинат','плитка','цемент','гвозди','шурупы','саморезы','инструмент','дрель','молоток','отвертка','ремонт','стройматериалы','грунтовка','шпаклевка','сантехник','электрик','мастер на час','вызов мастера','мебель','шкаф','диван','стол','стул','сборка мебели']},
+  other:     {n:'Прочее',           e:'📦', c:'#95a5a6', w:['подарок','подарки','цветы','букет','донат','благотворительность','кредит','рассрочка','комиссия','перевод денег','перевод','штраф','прочее']}
+};
+
+/* валюты */
 const CURRENCIES = [
-  {code:'KZT', sym:'₸', name:'Тенге'},
-  {code:'RUB', sym:'₽', name:'Рубль'},
-  {code:'UAH', sym:'₴', name:'Гривна'},
-  {code:'BYN', sym:'Br', name:'Бел. рубль'},
-  {code:'USD', sym:'$', name:'Доллар'},
-  {code:'KGS', sym:'с', name:'Сом'},
-  {code:'UZS', sym:'сум', name:'Сум'},
-  {code:'AMD', sym:'֏', name:'Драм'}
+  {s:'₸', n:'Тенге'},{s:'₽', n:'Рубль'},{s:'₴', n:'Гривна'},{s:'Br', n:'Бел. рубль'},
+  {s:'$', n:'Доллар'},{s:'с', n:'Сом'},{s:'сум', n:'Сум'},{s:'֏', n:'Драм'}
 ];
-const CATS = [
-  {id:'food',  name:'Еда',        emoji:'🍔', color:'#f5a623',
-   kw:['кофе','чай','еда','обед','ужин','завтрак','пицца','бургер','шаурма','суши','роллы','лапша','салат','пельмени','перекус','продукты','хлеб','молоко','вода','сок','напиток','кола','пепси','шоколад','сладкое','мороженое','десерт','торт','снек','фастфуд','ресторан','кафе','столовая','закуска','банкет','готовая еда','айран','батон','яйца','сыр','колбаса','гречка','рис','макароны','гранола','снеки','чипсы','печенье','булка','лаваш','энергетик','лимонад','latte','latte','бахча','фрукт','овощи','яблоки','бананы','мясо','курица','пельмень']},
-  {id:'transport', name:'Транспорт', emoji:'🚌', color:'#4d8de8',
-   kw:['такси','яндекс','inDrive','indrive','автобус','метро','трамвай','троллейбус','маршрутка','проезд','билет','бензин','заправка','топливо','гсм','поезд','жд','электричка','самолёт','самолет','авиа','парковка','мойка авто','шины','техосмотр']},
-  {id:'health', name:'Здоровье', emoji:'💊', color:'#34c759',
-   kw:['аптека','лекарство','лекарства','таблетки','витамины','врач','клиника','анализы','анализ','зуб','стоматолог','медицина','мазь','бинт','маска','термометр','прививка']},
-  {id:'fun', name:'Развлечения', emoji:'🎮', color:'#af52de',
-   kw:['кино','фильм','подписка','нетфликс','netflix','spotify','случай','игра','игры','steam','стеам','концерт','боулинг','караоке','фитнес','спортзал','зал','бассейн','парк','аттракцион','квест','настолки','книги','книга','музей','театр']},
-  {id:'comms', name:'Связь', emoji:'📱', color:'#ff9500',
-   kw:['мтс','mts','билайн','beeline','activ','актив','altel','тел2','tele2','связь','интернет','тариф','пополнение','пополнить','баланс телефона','sim','сим']},
-  {id:'home', name:'Дом', emoji:'🏠', color:'#8e8e93',
-   kw:['аренда','квартира','квартплата','коммуналка','свет','отопление','газ','ремонт','мебель','хозяйственные','хоз','химия','чистящие','туалетная бумага','стиральный порошок','лампочки','батареи','шторы','коврик']}
-];
-const OTHER = {id:'other', name:'Другое', emoji:'❓', color:'#8e8e93'};
 
-let S = loadState();
-function loadState(){
-  try { const raw = localStorage.getItem('spendApp'); if (raw) return JSON.parse(raw); } catch(e){}
-  return {onboarded:false, balance:0, currency:'KZT', theme:'system', expenses:[], onbCurrency:'KZT'};
+/* ---------- состояние ---------- */
+let S = {setup:false, balance:0, currency:0, theme:'system', expenses:[], previewCat:'other'};
+function load(){
+  try{ const raw = localStorage.getItem('spend_app'); if(raw) S = {...S, ...JSON.parse(raw)}; }catch(e){}
 }
-function save(){ try{ localStorage.setItem('spendApp', JSON.stringify(S)); }catch(e){} }
-function haptic(kind){ if (tg && tg.HapticFeedback) { try{ kind==='ok'?tg.HapticFeedback.notificationOccurred('success'):tg.HapticFeedback.impactOccurred('light'); }catch(e){} } }
-function curr(){ return CURRENCIES.find(c=>c.code===S.currency) || CURRENCIES[0]; }
-function fmt(n){
-  const v = Math.abs(n);
-  const s = Number.isInteger(v) ? v.toLocaleString('ru-RU') : v.toLocaleString('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:2});
-  return (n<0?'−':'') + s + ' ' + curr().sym;
-}
+function save(){ localStorage.setItem('spend_app', JSON.stringify(S)); }
 
-/* ---------- парсер ---------- */
-function parseInput(raw){
-  let t = raw.trim().replace(/\s+/g,' ');
-  const m = t.match(/\d+(?:[ \u00a0]\d{3})*(?:[.,]\d+)?/);
-  if (!m) return null;
-  const amount = parseFloat(m[0].replace(/[ \u00a0]/g,'').replace(',','.'));
-  if (!amount || amount<=0) return null;
-  let name = (t.replace(m[0],'').replace(/[,\.\-–—:;]+/g,' ').trim());
-  if (!name) return null;
-  return {name: name.charAt(0).toUpperCase()+name.slice(1), amount};
+const $ = id => document.getElementById(id);
+const fmt = n => new Intl.NumberFormat('ru-RU',{maximumFractionDigits:0}).format(Math.round(n)) + ' ' + CURRENCIES[S.currency].s;
+const haptic = () => { try{ if(tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }catch(e){} };
+
+/* ---------- парсер ввода и классификатор ---------- */
+function parseInput(text){
+  text = text.trim();
+  const m = text.match(/(\d[\d\s\u00a0]*(?:[.,]\d{1,2})?|\d)/);
+  if(!m) return null;
+  const amount = parseFloat(m[1].replace(/[\s\u00a0]/g,'').replace(',','.'));
+  if(!amount || amount <= 0) return null;
+  let name = (text.replace(m[1],'').replace(/[^\wа-яёА-ЯЁa-zA-Z\s\-]/g,' ').trim()) || 'Трата';
+  return {name, amount};
 }
 function detectCat(name){
-  const low = name.toLowerCase();
-  for (const c of CATS) if (c.kw.some(k=>low.includes(k))) return c;
-  return OTHER;
+  const t = ' ' + name.toLowerCase().replace(/[^\wа-яё\s\-]/g,' ') + ' ';
+  /* сначала двухсловные фразы — они точнее */
+  for(const [id,c] of Object.entries(CATS)){
+    if(id==='other') continue;
+    for(const w of c.w){ if(w.includes(' ') && t.includes(' '+w+' ')) return id; }
+  }
+  /* затем одиночные слова по границам */
+  const words = t.split(/\s+/).filter(Boolean);
+  let best = null, bestLen = 0;
+  for(const [id,c] of Object.entries(CATS)){
+    if(id==='other') continue;
+    for(const w of c.w){
+      if(!w.includes(' ') && words.includes(w) && w.length > bestLen){ best = id; bestLen = w.length; }
+    }
+  }
+  return best || 'other';
 }
 
 /* ---------- рендер ---------- */
-function renderAll(){ renderBalance(); renderStats(); renderRecent(); }
 function renderBalance(){
-  const el = document.getElementById('balanceValue');
+  const el = $('balance-val');
   el.textContent = fmt(S.balance);
-  document.getElementById('balanceCard').classList.toggle('negative', S.balance<0);
+  el.classList.toggle('negative', S.balance < 0);
+}
+function renderChips(){
+  $('chips').innerHTML = Object.entries(CATS).map(([id,c]) =>
+    `<button class="chip ${id===S.previewCat?'active':''}" data-cat="${id}">${c.e} ${c.n}</button>`).join('');
+}
+function renderPreview(text){
+  const p = parseInput(text);
+  const el = $('preview');
+  if(!p){ el.innerHTML = '<span style="opacity:.6">Напиши трату и сумму</span>'; S.previewCat='other'; renderChips(); return; }
+  el.innerHTML = `<b>${p.name}</b> — ${fmt(p.amount)} в категорию <b>${CATS[S.previewCat].e} ${CATS[S.previewCat].n}</b>`;
 }
 function renderStats(){
-  const now = new Date();
-  const monthExp = S.expenses.filter(e=>{const d=new Date(e.date);return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();});
-  const total = monthExp.reduce((s,e)=>s+e.amount,0);
-  const box = document.getElementById('stats');
-  if (!monthExp.length){ box.innerHTML = '<div class="empty">Пока нет трат — добавь первую выше</div>'; return; }
+  const month = new Date().toISOString().slice(0,7);
   const byCat = {};
-  monthExp.forEach(e=>{ byCat[e.cat] = (byCat[e.cat]||0)+e.amount; });
-  const rows = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
-  box.innerHTML = rows.map(([cid,sum])=>{
-    const c = CATS.find(x=>x.id===cid)||OTHER;
-    const pct = Math.round(sum/total*100);
-    return `<div class="stat-row">
-      <div class="stat-top"><span class="cat-name">${c.emoji} ${c.name}</span><span>${fmt(sum)} · ${pct}%</span></div>
-      <div class="stat-bar"><div class="stat-fill" style="width:${pct}%;background:${c.color}"></div></div>
-    </div>`;
+  S.expenses.forEach(e => { const em = new Date(e.ts).toISOString().slice(0,7); if(em===month) byCat[e.cat]=(byCat[e.cat]||0)+e.amount; });
+  const total = Object.values(byCat).reduce((a,b)=>a+b,0);
+  const box = $('stats');
+  if(!total){ box.innerHTML = '<div class="empty">В этом месяце пока пусто 👌</div>'; return; }
+  box.innerHTML = Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([id,sum])=>{
+    const c = CATS[id]; const pct = Math.round(sum/total*100);
+    return `<div class="cat-row">
+      <div class="emoji" style="background:${c.c}22">${c.e}</div>
+      <div class="cat-info">
+        <div class="cat-top"><span>${c.n}</span><span class="sum">${fmt(sum)}</span></div>
+        <div class="bar"><i style="width:${pct}%;background:${c.c}"></i></div>
+        <div class="pct">${pct}% от трат</div>
+      </div></div>`;
   }).join('');
 }
-function opRowHTML(e){
-  const c = CATS.find(x=>x.id===e.cat)||OTHER;
-  const d = new Date(e.date);
+function renderRecent(){
+  const recent = S.expenses.slice().sort((a,b)=>b.ts-a.ts).slice(0,2);
+  $('recent').innerHTML = recent.length ? recent.map(opRow).join('') : '<div class="empty">Добавь первую трату выше ↑</div>';
+}
+function opRow(e){
+  const c = CATS[e.cat] || CATS.other;
+  const d = new Date(e.ts);
   const time = d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
   return `<div class="op-row">
-    <div class="op-emoji">${c.emoji}</div>
-    <div class="op-info"><div class="op-name">${esc(e.name)}</div><div class="op-cat">${c.name} · ${time}</div></div>
-    <div class="op-right"><div class="op-amount">−${fmt(e.amount)}</div></div>
-    <button class="op-del" onclick="delExpense('${e.id}')">✕</button>
-  </div>`;
+    <div class="op-emoji" style="background:${c.c}22">${c.e}</div>
+    <div class="op-info"><div class="op-name">${e.name}</div><div class="op-cat">${c.n} · ${time}</div></div>
+    <div class="op-sum">−${fmt(e.amount)}</div>
+    <button class="del" data-del="${e.id}">✕</button></div>`;
 }
-function renderRecent(){
-  const box = document.getElementById('recent');
-  const list = S.expenses.slice(-5).reverse();
-  box.innerHTML = list.length ? list.map(opRowHTML).join('') : '<div class="empty">Здесь появятся твои траты</div>';
-}
-function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-/* ---------- действия ---------- */
-let pendingCat = null, pendingParsed = null;
-const inp = document.getElementById('expInput');
-inp.addEventListener('input', ()=>{
-  const p = parseInput(inp.value);
-  pendingParsed = p;
-  const pv = document.getElementById('preview'), cr = document.getElementById('chipRow');
-  if (!p){ pv.style.display='none'; cr.style.display='none'; pendingCat=null; return; }
-  if (!pendingCat) pendingCat = detectCat(p.name);
-  const c = CATS.find(x=>x.id===pendingCat)||OTHER;
-  pv.style.display='flex';
-  pv.innerHTML = `<span>${c.emoji} <b class="preview-amount">${esc(p.name)}</b> · ${fmt(p.amount)}</span>`;
-  cr.style.display='flex';
-  cr.innerHTML = CATS.concat([OTHER]).map(x=>
-    `<div class="chip ${x.id===pendingCat?'sel':''}" onclick="pickCat('${x.id}')">${x.emoji} ${x.name}</div>`).join('');
-});
-function pickCat(id){ pendingCat = id; if (pendingParsed) { const ev = new Event('input'); inp.dispatchEvent(ev); } haptic(); }
-function addExpense(){
-  const p = pendingParsed;
-  if (!p){ haptic(); inp.focus(); return; }
-  S.expenses.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), name:p.name, amount:p.amount, cat:pendingCat||detectCat(p.name).id, date:new Date().toISOString()});
-  S.balance -= p.amount;
-  save(); haptic('ok');
-  inp.value=''; pendingCat=null; pendingParsed=null;
-  document.getElementById('preview').style.display='none';
-  document.getElementById('chipRow').style.display='none';
-  renderAll(); renderHistory();
-}
-document.getElementById('addBtn').addEventListener('click', addExpense);
-inp.addEventListener('keydown', e=>{ if(e.key==='Enter') addExpense(); });
-
-function delExpense(id){
-  const i = S.expenses.findIndex(e=>e.id===id);
-  if (i<0) return;
-  S.balance += S.expenses[i].amount;
-  S.expenses.splice(i,1);
-  save(); haptic(); renderAll(); renderHistory();
-}
+function renderAll(){ renderBalance(); renderStats(); renderRecent(); }
 
 /* ---------- история ---------- */
-let histMonth = new Date();
-function showHistory(){ document.getElementById('main').classList.remove('active'); document.getElementById('history').classList.add('active'); histMonth = new Date(); renderHistory(); haptic(); window.scrollTo(0,0); }
-function showMain(){ document.getElementById('history').classList.remove('active'); document.getElementById('main').classList.add('active'); }
-function shiftMonth(d){ histMonth = new Date(histMonth.getFullYear(), histMonth.getMonth()+d, 1); renderHistory(); haptic(); }
+let histMonth = new Date().toISOString().slice(0,7);
+const MON = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 function renderHistory(){
-  document.getElementById('monthLabel').textContent =
-    histMonth.toLocaleDateString('ru-RU',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
-  const list = S.expenses.filter(e=>{const d=new Date(e.date);return d.getFullYear()===histMonth.getFullYear()&&d.getMonth()===histMonth.getMonth();})
-    .sort((a,b)=>new Date(b.date)-new Date(a.date));
-  const total = list.reduce((s,e)=>s+e.amount,0);
-  document.getElementById('monthTotal').textContent = '−'+fmt(total);
-  const box = document.getElementById('historyList');
-  if (!list.length){ box.innerHTML = '<div class="empty">В этом месяце трат нет</div>'; return; }
+  const [y,m] = histMonth.split('-').map(Number);
+  $('m-label').textContent = MON[m-1] + ' ' + y;
+  const list = S.expenses.filter(e => new Date(e.ts).toISOString().slice(0,7)===histMonth).sort((a,b)=>b.ts-a.ts);
+  const total = list.reduce((a,e)=>a+e.amount,0);
+  $('m-sum').innerHTML = total ? `Всего за месяц<b>${fmt(total)}</b>` : 'В этом месяце трат нет';
+  if(!list.length){ $('m-list').innerHTML=''; return; }
+  const today = new Date(); today.setHours(0,0,0,0);
+  const yest = new Date(today); yest.setDate(yest.getDate()-1);
   const groups = {};
-  list.forEach(e=>{ const d=new Date(e.date); const k=d.toDateString(); (groups[k]=groups[k]||[]).push(e); });
-  let html = '';
-  for (const k in groups){
-    const d = new Date(k);
-    const label = d.toDateString()===new Date().toDateString() ? 'Сегодня'
-      : d.toDateString()===new Date(Date.now()-864e5).toDateString() ? 'Вчера'
-      : d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
-    html += `<div class="day-group"><div class="day-title">${label}</div>${groups[k].map(opRowHTML).join('')}</div>`;
-  }
-  box.innerHTML = html;
+  list.forEach(e => {
+    const d = new Date(e.ts); d.setHours(0,0,0,0);
+    let label;
+    if(+d===+today) label='Сегодня';
+    else if(+d===+yest) label='Вчера';
+    else label = d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+    (groups[label]=groups[label]||[]).push(e);
+  });
+  $('m-list').innerHTML = Object.entries(groups).map(([label,arr]) =>
+    `<div class="day-label">${label}</div><div class="card">${arr.map(opRow).join('')}</div>`).join('');
 }
 
-/* ---------- шторки и настройки ---------- */
-function openSheet(name){
-  closeSheets(true);
-  document.getElementById('overlay').classList.add('open');
-  document.getElementById('sheet-'+name).classList.add('open');
-  if (name==='currency') renderCurrencyOptions();
-  if (name==='theme') renderThemeOptions();
-  if (name==='settings'){ document.getElementById('curHint').textContent = curr().sym+' ›'; document.getElementById('thHint').textContent = ({light:'Светлая',dark:'Тёмная',system:'Системная'})[S.theme]+' ›'; }
-}
-function closeSheets(silent){
-  document.getElementById('overlay').classList.remove('open');
-  document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'));
-  if (!silent) haptic();
-}
-function renderCurrencyOptions(){
-  document.getElementById('currOptions').innerHTML = CURRENCIES.map(c=>
-    `<div class="curr-opt ${c.code===S.currency?'sel':''}" onclick="setCurrency('${c.code}')"><span>${c.sym} · ${c.name}</span><span>${c.code}</span></div>`).join('');
-}
-function setCurrency(code){ S.currency = code; save(); haptic('ok'); renderAll(); openSheet('currency'); }
-function renderThemeOptions(){
-  document.querySelectorAll('.theme-opt').forEach(el=>el.classList.toggle('sel', el.dataset.t===S.theme));
-}
-function setTheme(t){ S.theme = t; save(); haptic(); applyTheme(); openSheet('theme'); }
+/* ---------- темы ---------- */
 function applyTheme(){
-  let mode = S.theme;
-  if (mode==='system'){
-    const tp = tg && tg.themeParams ? tg.themeParams : null;
-    mode = (tp && tp.bg_color && isDark(tp.bg_color)) ? 'dark'
-      : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  let dark;
+  if(S.theme==='light') dark=false;
+  else if(S.theme==='dark') dark=true;
+  else dark = tg ? (tg.colorScheme==='dark') : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.body.className = dark ? 'theme-dark' : 'theme-light';
+  $('theme-current').textContent = S.theme==='light'?'Светлая':S.theme==='dark'?'Тёмная':'Системная';
+  document.querySelectorAll('.theme-opt').forEach(b=>b.classList.toggle('active', b.dataset.theme===S.theme));
+}
+if(tg && tg.onEvent) tg.onEvent('themeParamsChanged', applyTheme);
+
+/* ---------- шторки ---------- */
+function openSheet(id){ $('overlay').classList.add('show'); $(id).classList.add('show'); haptic(); }
+function closeSheets(){ document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('show')); $('overlay').classList.remove('show'); }
+$('overlay').onclick = closeSheets;
+
+function renderCurrencyGrids(){
+  const html = CURRENCIES.map((c,i)=>
+    `<button class="cur-btn ${i===S.currency?'active':''}" data-i="${i}"><span class="sym">${c.s}</span><span class="nm">${c.n}</span></button>`).join('');
+  $('ob-currencies').innerHTML = html;
+  $('menu-currencies').innerHTML = html;
+}
+document.body.addEventListener('click', e=>{
+  const cb = e.target.closest('.cur-btn');
+  if(cb){ S.currency = +cb.dataset.i; $('cur-current').textContent = CURRENCIES[S.currency].s; renderCurrencyGrids(); renderAll(); renderPreview($('exp-input').value); save(); haptic(); }
+  const ch = e.target.closest('.chip');
+  if(ch){ S.previewCat = ch.dataset.cat; renderChips(); renderPreview($('exp-input').value); haptic(); }
+  const del = e.target.closest('[data-del]');
+  if(del){
+    const id = del.dataset.del;
+    const ex = S.expenses.find(x=>x.id===id);
+    if(ex){ S.balance += ex.amount; S.expenses = S.expenses.filter(x=>x.id!==id); save(); renderAll(); renderHistory(); haptic(); }
   }
-  document.documentElement.setAttribute('data-theme', mode);
-}
-function isDark(hex){
-  if (!/^#/.test(hex)) return false;
-  const n = parseInt(hex.slice(1),16);
-  const r=(n>>16)&255,g=(n>>8)&255,b=n&255;
-  return (0.299*r+0.587*g+0.114*b)<128;
-}
-if (tg && tg.onEvent) tg.onEvent('themeChanged', ()=>{ if (S.theme==='system') applyTheme(); });
-if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', ()=>{ if (S.theme==='system') applyTheme(); });
-
-/* ---------- баланс ---------- */
-function openBalanceEdit(){
-  document.getElementById('balEditInput').value = S.balance ? String(S.balance) : '';
-  openSheet('balance');
-}
-function saveBalance(){
-  const v = parseFloat(document.getElementById('balEditInput').value.replace(',','.').replace(/\s/g,''));
-  if (isNaN(v)){ return; }
-  S.balance = v; save(); haptic('ok'); renderAll(); closeSheets(true);
-}
-
-/* ---------- онбординг ---------- */
-function renderOnbCurrencies(){
-  document.getElementById('currGrid').innerHTML = CURRENCIES.map(c=>
-    `<div class="curr-btn ${c.code===S.onbCurrency?'sel':''}" onclick="pickOnbCurrency('${c.code}')">${c.sym}<span class="curr-name">${c.name}</span></div>`).join('');
-}
-function pickOnbCurrency(code){ S.onbCurrency = code; save(); renderOnbCurrencies(); haptic(); }
-document.getElementById('onbStart').addEventListener('click', ()=>{
-  const v = parseFloat(document.getElementById('onbBalance').value.replace(',','.').replace(/\s/g,''));
-  S.balance = isNaN(v)?0:v;
-  S.currency = S.onbCurrency;
-  S.onboarded = true;
-  save(); haptic('ok'); applyTheme(); init();
+  const th = e.target.closest('.theme-opt');
+  if(th){ S.theme = th.dataset.theme; save(); applyTheme(); haptic(); }
 });
 
-/* ---------- запуск ---------- */
-function init(){
-  if (!S.onboarded){ renderOnbCurrencies(); document.getElementById('onboarding').style.display='block'; return; }
-  document.getElementById('onboarding').style.display='none';
-  document.getElementById('main').classList.add('active');
+/* ---------- события ---------- */
+$('exp-input').addEventListener('input', e => {
+  const p = parseInput(e.target.value);
+  if(p) S.previewCat = detectCat(p.name);
+  renderPreview(e.target.value);
+});
+function addExpense(){
+  const p = parseInput($('exp-input').value);
+  if(!p) return;
+  S.expenses.push({id:'e'+Date.now(), name:p.name, amount:p.amount, cat:S.previewCat, ts:Date.now()});
+  S.balance -= p.amount;
+  save();
+  $('exp-input').value = '';
   renderAll();
+  haptic();
 }
+$('btn-add').onclick = addExpense;
+$('exp-input').addEventListener('keydown', e => { if(e.key==='Enter') addExpense(); });
+
+$('btn-gear').onclick = () => openSheet('sheet-menu');
+$('mi-currency').onclick = () => { $('sheet-menu').classList.remove('show'); $('sheet-currency').classList.add('show'); };
+$('mi-theme').onclick = () => { $('sheet-menu').classList.remove('show'); $('sheet-theme').classList.add('show'); };
+$('cur-back').onclick = () => { $('sheet-currency').classList.remove('show'); $('sheet-menu').classList.add('show'); };
+$('theme-back').onclick = () => { $('sheet-theme').classList.remove('show'); $('sheet-menu').classList.add('show'); };
+
+$('change-balance').onclick = () => { $('bal-input').value = S.balance; openSheet('sheet-balance'); };
+$('bal-back').onclick = closeSheets;
+$('bal-save').onclick = () => {
+  const v = parseFloat($('bal-input').value.replace(/[\s\u00a0]/g,'').replace(',','.'));
+  if(!isNaN(v)){ S.balance = v; save(); renderAll(); haptic(); }
+  closeSheets();
+};
+
+$('btn-history').onclick = () => { histMonth = new Date().toISOString().slice(0,7); renderHistory(); $('scr-history').classList.add('show'); haptic(); };
+$('btn-back').onclick = () => $('scr-history').classList.remove('show');
+$('m-prev').onclick = () => { const [y,m]=histMonth.split('-').map(Number); const d=new Date(y,m-2,1); histMonth=d.toISOString().slice(0,7); renderHistory(); haptic(); };
+$('m-next').onclick = () => { const [y,m]=histMonth.split('-').map(Number); const d=new Date(y,m,1); histMonth=d.toISOString().slice(0,7); renderHistory(); haptic(); };
+
+/* ---------- старт ---------- */
+$('ob-start').onclick = () => {
+  const v = parseFloat($('ob-balance').value.replace(/[\s\u00a0]/g,'').replace(',','.')) || 0;
+  S.balance = v; S.setup = true; save();
+  $('scr-onboard').classList.remove('active'); $('scr-main').classList.add('active');
+  renderAll(); haptic();
+};
+
+load();
+renderCurrencyGrids();
+$('cur-current').textContent = CURRENCIES[S.currency].s;
 applyTheme();
-init();
+if(S.setup){ $('scr-onboard').classList.remove('active'); $('scr-main').classList.add('active'); renderAll(); }
+renderPreview('');
 </script>
 </body>
 </html>
