@@ -1,100 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!-- Мета-теги и стили -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Стили для тёмной и светлой темы -->
     <style>
-        /* Стили интерфейса */
+        /* Основные стили */
         body {
             background: #121212;
             color: #fff;
             font-family: 'Roboto', sans-serif;
         }
         
-        /* Стили для карточки "Долги" */
-        .debts-card {
+        .card {
             background: #222;
             border-radius: 12px;
             padding: 16px;
             margin: 8px;
+            cursor: pointer;
         }
         
-        /* Стили для формы добавления долга */
-        .debt-form {
+        .debt-modal {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.8);
+            padding: 24px;
+        }
+        
+        .modal-content {
             background: #333;
-            padding: 16px;
+            padding: 24px;
             border-radius: 12px;
-        }
-    </style>
-</head>
-<body>
-    <!-- Шапка приложения -->
-    <div class="header">
-        <h1>Мои расходы</h1>
-        <button class="settings-btn">⚙️</button>
-    </div>
-
-    <!-- Основная статистика -->
-    <div class="stats">
-        <div class="balance-card">
-            <h2>Баланс</h2>
-            <p>0</p>
-            <button>Изменить</button>
-        </div>
-        
-        <div class="debts-card">
-            <h2>Долги</h2>
-            <p>0</p>
-            <p>Долгов: 0</p>
-            <button>Добавить долг</button>
-        </div>
-    </div>
-
-    <!-- Статистика за период -->
-    <div class="period-stats">
-        <button>Месяц</button>
-        <button>Неделя</button>
-        <button>Всё время</button>
-    </div>
-
-    <!-- Последние операции -->
-    <div class="recent-operations">
-        <h3>Последние операции</h3>
-        <button>Все &gt;</button>
-    </div>
-
-    <!-- Нижняя навигация -->
-    <div class="bottom-nav">
-        <button>💰 Кошелёк</button>
-        <button>🕐 История</button>
-        <button>📊 Анализ</button>
-        <button class="add-btn">+</button>
-    </div>
-
-    <!-- Форма добавления долга (скрытая) -->
-    <div class="debt-form hidden">
-        <h3>Новый долг</h3>
-        <input type="text" placeholder="Название (например: кредит)">
-        <input type="number" placeholder="Сумма">
-        <button>Сохранить</button>
-        <button>Отменить</button>
-    </div>
-
-    <!-- JavaScript логика -->
-    <script>
-        // Логика приложения
-        document.addEventListener('DOMContentLoaded', () => {
-            // Обработчик для открытия формы долга
-            document.querySelector('.debts-card button').addEventListener('click', () => {
-                document.querySelector('.debt-form').classList.toggle('hidden');
-            });
-
-            // Обработчик для закрытия формы
-            document.querySelector('.debt-form button:last-child').addEventListener('click', () => {
-                document.querySelector('.debt-form').classList.add('hidden');
-            });
-        });
-    </script>
-</body>
-</html>
