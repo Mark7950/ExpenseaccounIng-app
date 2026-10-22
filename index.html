@@ -2,473 +2,726 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Мои траты</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Мои расходы</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{
-  --bg:#f2f4f8; --card:#ffffff; --text:#1c1e21; --muted:#7a8088;
-  --accent:#2e6bd6; --accent2:#5b9def; --line:#e8ebf0;
-  --chip:#eef2f8; --danger:#e5484d;
-  --shadow:0 2px 12px rgba(30,60,120,.08);
+  --blue:#2f7cf6; --blue2:#1e5fd6; --accent:#2f7cf6;
+  --bg:#0a0d14; --bg2:#11151f; --card:#161b26; --card2:#1c2230;
+  --text:#f2f4f8; --muted:#8a93a6; --border:#232a38;
+  --green:#2ecc71; --red:#ff5a5f; --yellow:#f5b942;
 }
-[data-theme="dark"]{
-  --bg:#17212b; --card:#232e3c; --text:#f5f5f5; --muted:#8fa0b3;
-  --accent:#4d8de8; --accent2:#7ab0f5; --line:#2f3d4d;
-  --chip:#2c3a4b; --danger:#ff6b6e;
-  --shadow:0 2px 12px rgba(0,0,0,.25);
+html[data-theme="light"]{
+  --bg:#f2f4f8; --bg2:#ffffff; --card:#ffffff; --card2:#f0f3f8;
+  --text:#161a22; --muted:#7b8598; --border:#e4e8f0;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  background:var(--bg);color:var(--text);transition:background .25s,color .25s;
-  min-height:100vh}
-.screen{display:none;max-width:520px;margin:0 auto;padding:16px 16px 40px}
-.screen.active{display:block}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.hidden{display:none!important}
+.page{display:none;min-height:100vh;padding-bottom:110px}
+.page.active{display:block}
 
-/* ===== шапки ===== */
-.app-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.app-header h1{font-size:20px;font-weight:700}
-.icon-btn{width:38px;height:38px;border-radius:12px;border:none;background:var(--card);
-  color:var(--text);font-size:19px;box-shadow:var(--shadow);cursor:pointer;
-  display:flex;align-items:center;justify-content:center}
-.hist-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.hist-header h1{font-size:20px;font-weight:700;flex:1}
+/* ---------- ONBOARDING ---------- */
+#onboard{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:18px;text-align:center;background:linear-gradient(160deg,#123a8f 0%,#0a0d14 70%)}
+#onboard .wave{font-size:52px}
+#onboard h1{font-size:26px;font-weight:700}
+#onboard p{color:#b8c2d8;font-size:15px;max-width:280px}
+#onboard .hint{font-size:14px;color:#9fb4e8}
+.cur-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;max-width:320px}
+.cur-btn{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:12px;padding:10px 4px;color:#fff;font-size:17px;cursor:pointer;transition:.15s}
+.cur-btn.sel{background:var(--blue);border-color:var(--blue);font-weight:700;transform:scale(1.06)}
+#ob-amount{width:100%;max-width:320px;padding:14px;border-radius:14px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:19px;text-align:center;outline:none}
+#ob-amount::placeholder{color:#7f8aa3}
+.btn-main{width:100%;max-width:320px;padding:15px;border-radius:14px;border:none;background:var(--blue);color:#fff;font-size:17px;font-weight:600;cursor:pointer;margin-top:6px}
 
-/* ===== онбординг ===== */
-#onboarding{max-width:520px;margin:0 auto;padding:40px 20px}
-.onb-emoji{font-size:48px;text-align:center;margin-bottom:12px}
-.onb-title{font-size:24px;font-weight:700;text-align:center;margin-bottom:6px}
-.onb-sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:26px}
-.onb-label{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px}
-.curr-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:22px}
-.curr-btn{background:var(--card);border:2px solid var(--line);border-radius:10px;
-  padding:9px 4px;font-size:15px;font-weight:600;color:var(--text);cursor:pointer;
-  text-align:center;transition:border-color .15s,background .15s}
-.curr-btn .curr-name{display:block;font-size:9px;font-weight:500;color:var(--muted);margin-top:2px}
-.curr-btn.sel{border-color:var(--accent);background:var(--chip)}
-.balance-input{width:100%;background:var(--card);border:2px solid var(--line);border-radius:12px;
-  padding:11px 14px;font-size:17px;color:var(--text);outline:none;margin-bottom:8px}
-.balance-input:focus{border-color:var(--accent)}
-.onb-hint{font-size:13px;color:var(--muted);text-align:center;margin-bottom:22px}
-.btn-primary{width:100%;padding:13px;border:none;border-radius:12px;background:var(--accent);
-  color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+/* ---------- HEADER ---------- */
+.header{background:linear-gradient(165deg,#1a4fc0 0%,#163a8f 45%,rgba(13,17,27,0) 100%);padding:18px 18px 30px;border-radius:0 0 26px 26px}
+.hrow{display:flex;align-items:center;justify-content:space-between}
+.app-title{font-size:19px;font-weight:700}
+.round-ico{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.14);border:none;color:#fff;font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.sp-label{margin-top:22px;font-size:15px;color:#c6d2ea}
+.sp-amount{font-size:42px;font-weight:800;letter-spacing:-1px;margin-top:2px}
+.sp-amount .cur-sym{font-size:26px;font-weight:600;margin-left:4px;opacity:.9}
+.sp-avg{font-size:14px;color:#9db3de;margin-top:6px}
 
-/* ===== карточка баланса ===== */
-.balance-card{border-radius:18px;padding:20px;color:#fff;margin-bottom:18px;
-  background:linear-gradient(135deg,#5b9def,#2e6bd6);
-  box-shadow:0 8px 24px rgba(46,107,214,.35)}
-.balance-card.negative{background:linear-gradient(135deg,#f38a8d,#c93a40);box-shadow:0 8px 24px rgba(201,58,64,.35)}
-.balance-label{font-size:13px;opacity:.85;margin-bottom:4px}
-.balance-value{font-size:34px;font-weight:700;letter-spacing:-.5px}
-.balance-sub{font-size:12px;opacity:.75;margin-top:6px;cursor:pointer}
+/* ---------- CARDS ---------- */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px 0}
+.card{background:var(--card);border-radius:18px;padding:14px 16px;cursor:pointer;position:relative;transition:.15s}
+.card:active{transform:scale(.98)}
+.dot{position:absolute;top:16px;right:14px;width:10px;height:10px;border-radius:50%}
+.dot.g{background:var(--green)} .dot.r{background:var(--red)} .dot.y{background:var(--yellow)}
+.card .lbl{font-size:14px;color:var(--muted)}
+.card .val{font-size:24px;font-weight:800;margin-top:6px}
+.card .sub{font-size:12px;color:var(--muted);margin-top:6px}
 
-/* ===== ввод ===== */
-.input-card{background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin-bottom:20px}
-.input-row{display:flex;gap:8px}
-.exp-input{flex:1;background:var(--chip);border:none;border-radius:12px;padding:11px 14px;
-  font-size:15px;color:var(--text);outline:none}
-.add-btn{background:var(--accent);color:#fff;border:none;border-radius:12px;
-  padding:0 18px;font-size:15px;font-weight:600;cursor:pointer}
-.preview{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;
-  color:var(--muted);flex-wrap:wrap}
-.preview-amount{font-weight:700;color:var(--text)}
-.chip-row{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding-bottom:2px}
-.chip{flex-shrink:0;padding:5px 12px;border-radius:20px;border:1.5px solid var(--line);
-  background:var(--card);font-size:12px;color:var(--text);cursor:pointer;white-space:nowrap}
-.chip.sel{border-color:var(--accent);background:var(--chip);font-weight:600}
+/* ---------- STATS ---------- */
+.stats{padding:22px 16px 0}
+.stats h3{font-size:16px;margin-bottom:12px}
+.chips{display:flex;gap:8px;margin-bottom:14px}
+.chip{padding:8px 16px;border-radius:20px;background:var(--card2);border:none;color:var(--muted);font-size:13px;cursor:pointer}
+.chip.on{background:var(--blue);color:#fff;font-weight:600}
+.stat-row{background:var(--card);border-radius:16px;padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:9px}
+.stat-row .ci{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.stat-row .nm{flex:1;font-size:14px;font-weight:600}
+.stat-row .nm small{display:block;color:var(--muted);font-weight:400;font-size:11px;margin-top:2px}
+.stat-row .amt{font-size:14px;font-weight:700}
+.bar{height:6px;border-radius:4px;background:var(--card2);margin-top:6px;overflow:hidden}
+.bar>div{height:100%;border-radius:4px}
 
-/* ===== секции ===== */
-.section-title{font-size:16px;font-weight:700;margin-bottom:12px}
-.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.section-head .section-title{margin-bottom:0}
-.arrow-btn{width:34px;height:34px;border-radius:10px;border:none;background:var(--card);
-  color:var(--muted);font-size:16px;box-shadow:var(--shadow);cursor:pointer;
-  display:flex;align-items:center;justify-content:center}
-.stat-row{margin-bottom:12px}
-.stat-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
-.stat-top .cat-name{font-weight:600}
-.stat-bar{height:7px;border-radius:4px;background:var(--line);overflow:hidden}
-.stat-fill{height:100%;border-radius:4px;transition:width .4s}
+/* ---------- LATEST ---------- */
+.latest{padding:22px 16px 0}
+.latest-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.latest-head h3{font-size:16px}
+.all-link{background:none;border:none;color:var(--blue);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:3px}
+.tx-row{background:var(--card);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.tx-row .ci{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.tx-row .mid{flex:1;min-width:0}
+.tx-row .nm{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-row .cat{font-size:12px;color:var(--muted);margin-top:2px}
+.tx-row .amt{font-size:15px;font-weight:700;text-align:right}
+.tx-row .amt small{display:block;font-size:10px;color:var(--muted);font-weight:400}
+.del-x{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:22px 0}
 
-/* ===== операции ===== */
-.op-row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:14px;
-  padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
-.op-emoji{width:38px;height:38px;border-radius:11px;background:var(--chip);
-  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.op-info{flex:1;min-width:0}
-.op-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.op-cat{font-size:11px;color:var(--muted)}
-.op-right{text-align:right}
-.op-amount{font-size:14px;font-weight:700}
-.op-del{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;
-  padding:4px;opacity:.6}
-.empty{text-align:center;color:var(--muted);font-size:14px;padding:30px 0}
+/* ---------- NAV ---------- */
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;padding:8px 4px calc(10px + env(safe-area-inset-bottom));z-index:40}
+.nav button{flex:1;background:none;border:none;color:var(--muted);font-size:10.5px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0}
+.nav button span.ic{font-size:21px}
+.nav button.on{color:var(--blue);font-weight:600}
+.fab{position:fixed;right:18px;bottom:86px;width:56px;height:56px;border-radius:50%;background:var(--blue);color:#fff;border:none;font-size:30px;font-weight:300;cursor:pointer;box-shadow:0 6px 20px rgba(47,124,246,.45);z-index:41}
 
-/* ===== история: месяц и даты ===== */
-.month-nav{display:flex;align-items:center;justify-content:space-between;
-  background:var(--card);border-radius:12px;padding:8px 12px;box-shadow:var(--shadow);margin-bottom:16px}
-.month-label{font-size:15px;font-weight:600}
-.month-arrow{width:32px;height:32px;border:none;background:none;color:var(--accent);
-  font-size:17px;cursor:pointer}
-.day-group{margin-bottom:16px}
-.day-title{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
-.history-total{display:flex;justify-content:space-between;align-items:center;
-  background:var(--card);border-radius:14px;padding:14px;margin-bottom:16px;box-shadow:var(--shadow)}
-.history-total .lt-label{font-size:13px;color:var(--muted)}
-.history-total .lt-value{font-size:18px;font-weight:700}
+/* ---------- SHEET ---------- */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;opacity:0;pointer-events:none;transition:.2s}
+.overlay.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--bg2);border-radius:22px 22px 0 0;padding:16px 18px calc(18px + env(safe-area-inset-bottom));z-index:51;transform:translateY(105%);transition:.25s;max-height:85vh;overflow-y:auto}
+.sheet.show{transform:translateY(0)}
+.sheet h2{font-size:19px;font-weight:700;margin-bottom:14px}
+.sheet .frow{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--border);font-size:15px;cursor:pointer}
+.btn{width:100%;padding:14px;border-radius:14px;border:none;font-size:15px;font-weight:600;cursor:pointer;margin-top:12px}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.ghost{background:var(--card2);color:var(--text)}
+.btn-row{display:flex;gap:10px;margin-top:14px}
+.btn-row .btn{margin-top:0}
+.back-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.back-row button{background:var(--card2);border:none;color:var(--text);font-size:14px;font-weight:600;padding:8px 14px;border-radius:12px;cursor:pointer}
+.theme-opt{display:block;width:100%;text-align:left;padding:13px 15px;border-radius:13px;background:var(--card2);border:1.5px solid transparent;color:var(--text);font-size:15px;margin-bottom:8px;cursor:pointer}
+.theme-opt.sel{border-color:var(--blue);font-weight:600}
+.cur-grid.sheet-grid{max-width:none}
 
-/* ===== шторки ===== */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50}
-.overlay.open{display:block}
-.sheet{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;
-  background:var(--card);border-radius:20px 20px 0 0;padding:18px 20px 26px;z-index:51;
-  transform:translateY(100%);transition:transform .25s}
-.sheet.open{transform:translateY(0)}
-.sheet-title{font-size:17px;font-weight:700;margin-bottom:16px;text-align:center}
-.sheet-row{display:flex;align-items:center;justify-content:space-between;
-  padding:13px 4px;border-bottom:1px solid var(--line);font-size:15px;cursor:pointer}
-.sheet-row:last-child{border-bottom:none}
-.sheet-row .arr{color:var(--muted)}
-.back-row{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--accent);
-  padding:4px 0 12px;cursor:pointer;font-weight:600}
-.theme-opt,.curr-opt{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:8px;
-  font-size:15px;cursor:pointer}
-.theme-opt.sel,.curr-opt.sel{border-color:var(--accent);background:var(--chip)}
+/* ---------- HISTORY PAGE ---------- */
+.page-head{display:flex;align-items:center;gap:12px;padding:16px}
+.page-head .backb{width:38px;height:38px;border-radius:50%;background:var(--card2);border:none;color:var(--text);font-size:18px;cursor:pointer}
+.page-head h2{font-size:22px;font-weight:800;flex:1}
+.msel{display:flex;align-items:center;justify-content:center;gap:18px;padding:6px 0 14px}
+.msel .arr{width:38px;height:38px;border-radius:50%;background:var(--card2);border:none;color:var(--text);font-size:17px;cursor:pointer}
+.msel .mname{font-size:16px;font-weight:700;text-align:center;min-width:150px}
+.msel .mname small{display:block;font-size:11px;color:var(--muted);font-weight:400}
+.sumline{margin:4px 16px 14px;background:var(--card);border-radius:14px;padding:12px 15px;font-size:14px;display:flex;justify-content:space-between}
+.day-head{padding:10px 18px 6px;font-size:13px;font-weight:700;color:var(--muted)}
+
+/* ---------- ADD PAGE ---------- */
+#addpage{position:fixed;inset:0;background:var(--bg);z-index:45;overflow-y:auto;padding:0 0 120px}
+.seg{display:flex;background:var(--card2);border-radius:14px;padding:4px;margin-bottom:18px}
+.seg button{flex:1;padding:11px;border-radius:11px;border:none;background:none;color:var(--muted);font-size:15px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--blue);color:#fff}
+.fl{margin-bottom:16px}
+.fl label{display:block;font-size:13px;color:var(--muted);margin-bottom:7px;font-weight:600}
+.field{width:100%;padding:14px 15px;border-radius:14px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:16px;outline:none}
+.field.err{border-color:var(--red)}
+.field::placeholder{color:var(--muted);opacity:.7}
+.pick-btn{width:100%;padding:14px 15px;border-radius:14px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:16px;text-align:left;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.pick-btn .chev{color:var(--muted)}
+input[type=date].pick-input{color-scheme:dark}
+html[data-theme=light] input[type=date].pick-input{color-scheme:light}
+
+/* ---------- ANALYSIS ---------- */
+.an-card{background:var(--card);border-radius:18px;padding:16px;margin:0 16px 14px}
+.an-card h3{font-size:17px;font-weight:700;margin-bottom:6px}
+.an-card .sub{font-size:13px;color:var(--muted);margin-bottom:14px}
+.kv{display:flex;justify-content:space-between;font-size:14px;padding:7px 0}
+.kv .k{color:var(--muted)}
+.kv .v{font-weight:700}
+.add-income{color:#2ecc71;font-weight:700;font-size:15px;background:none;border:none;cursor:pointer;float:right}
+.donut-wrap{display:flex;justify-content:center;padding:14px 0}
+.legend{display:flex;justify-content:center;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legend span::before{content:'';display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;background:var(--lc)}
+.top-badge{width:40px;height:40px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.pct{font-size:15px;font-weight:700}
+
+/* ---------- DEBTS ---------- */
+.debt-row{background:var(--card);border-radius:16px;padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.debt-row .ico{width:40px;height:40px;border-radius:50%;background:rgba(245,185,66,.16);display:flex;align-items:center;justify-content:center;font-size:18px}
+.debt-row .nm{flex:1;font-size:15px;font-weight:600}
+.debt-row .amt{font-size:15px;font-weight:800;color:var(--yellow)}
+#newdebt{position:fixed;left:0;right:0;bottom:0;top:50%;background:var(--bg2);border-radius:22px 22px 0 0;padding:18px;z-index:52;transform:translateY(105%);transition:.25s;overflow-y:auto}
+#newdebt.show{transform:translateY(0)}
+@media (max-width:380px){.sp-amount{font-size:36px}.card .val{font-size:21px}}
 </style>
 </head>
 <body>
 
-<!-- ОНБОРДИНГ -->
-<div id="onboarding">
-  <div class="onb-emoji">👋</div>
-  <div class="onb-title">Добро пожаловать!</div>
-  <div class="onb-sub">Настроим учёт твоих денег за 30 секунд</div>
-  <div class="onb-label">Выбери валюту</div>
-  <div class="curr-grid" id="currGrid"></div>
-  <div class="onb-label">Сколько денег у тебя на данный момент?</div>
-  <input type="text" inputmode="decimal" class="balance-input" id="onbBalance" placeholder="0">
-  <div class="onb-hint">С этой суммы мы начнём вести твой баланс 💰</div>
-  <button class="btn-primary" id="onbStart">Начать</button>
+<!-- ONBOARDING -->
+<div id="onboard">
+  <div class="wave">👋</div>
+  <h1>Добро пожаловать!</h1>
+  <p>Настроим приложение за 10 секунд</p>
+  <div style="width:100%;max-width:320px">
+    <div class="hint" style="text-align:left;margin-bottom:8px">Выберите валюту</div>
+    <div class="cur-grid" id="ob-currencies"></div>
+  </div>
+  <div style="width:100%;max-width:320px">
+    <div class="hint" style="text-align:left;margin-bottom:8px">Сколько денег у вас на данный момент?</div>
+    <input id="ob-amount" type="number" inputmode="decimal" placeholder="0">
+    <div class="hint" style="margin-top:10px">С этой суммы мы начнём вести ваш баланс 💰</div>
+  </div>
+  <button class="btn-main" onclick="finishOnboard()">Начать</button>
 </div>
 
-<!-- ГЛАВНЫЙ ЭКРАН -->
-<div id="main" class="screen">
-  <div class="app-header">
-    <h1>Мои траты</h1>
-    <button class="icon-btn" onclick="openSheet('settings')">⚙</button>
-  </div>
-  <div class="balance-card" id="balanceCard">
-    <div class="balance-label">Осталось на балансе</div>
-    <div class="balance-value" id="balanceValue">0</div>
-    <div class="balance-sub" onclick="openBalanceEdit()">Нажми, чтобы изменить баланс</div>
-  </div>
-  <div class="input-card">
-    <div class="input-row">
-      <input type="text" class="exp-input" id="expInput" placeholder="кофе 350">
-      <button class="add-btn" id="addBtn">+</button>
+<!-- WALLET -->
+<div id="page-wallet" class="page">
+  <div class="header">
+    <div class="hrow">
+      <div class="app-title">Мои расходы</div>
+      <button class="round-ico" onclick="openSheet('settings')">⚙️</button>
     </div>
-    <div class="preview" id="preview" style="display:none"></div>
-    <div class="chip-row" id="chipRow" style="display:none"></div>
+    <div class="sp-label">Расходы</div>
+    <div class="sp-amount"><span id="month-exp">0</span><span class="cur-sym" id="sym1"></span></div>
+    <div class="sp-avg" id="month-avg"></div>
   </div>
-  <div class="section-title">Траты в этом месяце</div>
-  <div id="stats"></div>
-  <div class="section-head" style="margin-top:24px">
-    <div class="section-title">Последние операции</div>
-    <button class="arrow-btn" onclick="showHistory()">→</button>
+  <div class="cards">
+    <div class="card" onclick="openBalance()">
+      <div class="dot g" id="bal-dot"></div>
+      <div class="lbl">Баланс</div>
+      <div class="val" id="bal-val">0</div>
+      <div class="sub">Нажми, чтобы изменить баланс</div>
+    </div>
+    <div class="card" onclick="openDebts()">
+      <div class="dot y"></div>
+      <div class="lbl">Долги</div>
+      <div class="val" id="debt-val">0</div>
+      <div class="sub" id="debt-sub">Нажми, чтобы добавить долг</div>
+    </div>
   </div>
-  <div id="recent"></div>
+  <div class="stats">
+    <h3>Статистика за месяц</h3>
+    <div class="chips">
+      <button class="chip on" data-per="month" onclick="setPeriod('month',this)">Месяц</button>
+      <button class="chip" data-per="week" onclick="setPeriod('week',this)">Неделя</button>
+      <button class="chip" data-per="all" onclick="setPeriod('all',this)">Всё время</button>
+    </div>
+    <div id="stats-body"></div>
+  </div>
+  <div class="latest">
+    <div class="latest-head">
+      <h3>Последние операции</h3>
+      <button class="all-link" onclick="goTab('history')">Все ›</button>
+    </div>
+    <div id="latest-body"></div>
+  </div>
 </div>
 
-<!-- СТРАНИЦА ИСТОРИИ -->
-<div id="history" class="screen">
-  <div class="hist-header">
-    <button class="icon-btn" onclick="showMain()">←</button>
-    <h1>История</h1>
+<!-- HISTORY -->
+<div id="page-history" class="page">
+  <div class="page-head">
+    <button class="backb" onclick="goTab('wallet')">←</button>
+    <h2>История</h2>
   </div>
-  <div class="month-nav">
-    <button class="month-arrow" onclick="shiftMonth(-1)">‹</button>
-    <div class="month-label" id="monthLabel"></div>
-    <button class="month-arrow" onclick="shiftMonth(1)">›</button>
+  <div class="msel">
+    <button class="arr" onclick="histShift(-1)">‹</button>
+    <div class="mname" id="hist-month"></div>
+    <button class="arr" onclick="histShift(1)">›</button>
   </div>
-  <div class="history-total">
-    <div class="lt-label">Всего за месяц</div>
-    <div class="lt-value" id="monthTotal">0</div>
-  </div>
-  <div id="historyList"></div>
+  <div class="sumline"><span>Всего за месяц</span><b id="hist-sum"></b></div>
+  <div id="hist-body"></div>
 </div>
 
-<!-- ШТОРКИ -->
-<div class="overlay" id="overlay" onclick="closeSheets()"></div>
-<div class="sheet" id="sheet-settings">
-  <div class="sheet-title">Настройки</div>
-  <div class="sheet-row" onclick="openSheet('currency')">Валюта <span class="arr" id="curHint">₸ ›</span></div>
-  <div class="sheet-row" onclick="openSheet('theme')">Тема <span class="arr" id="thHint">Системная ›</span></div>
+<!-- ANALYSIS -->
+<div id="page-analysis" class="page">
+  <div class="page-head">
+    <button class="backb" onclick="goTab('wallet')">←</button>
+    <h2>Анализ</h2>
+  </div>
+  <div class="msel">
+    <button class="arr" onclick="anShift(-1)">‹</button>
+    <div class="mname" id="an-month"></div>
+    <button class="arr" onclick="anShift(1)">›</button>
+  </div>
+  <div class="an-card">
+    <h3>Итог периода</h3>
+    <div class="sub" id="an-sub"></div>
+    <div class="kv"><span class="k">Расходы</span><span class="v" id="an-exp"></span></div>
+    <div class="kv"><span class="k">Доходы</span><span class="v" id="an-inc"></span></div>
+    <div class="kv"><span class="k">Итог</span><span class="v" id="an-net"></span></div>
+  </div>
+  <div class="an-card">
+    <h3>По категориям</h3>
+    <div class="donut-wrap"><svg id="donut" width="190" height="190" viewBox="0 0 190 190"></svg></div>
+    <div class="legend" id="donut-legend"></div>
+    <div id="an-cats" style="margin-top:12px"></div>
+  </div>
+  <div class="an-card">
+    <h3>ТОП 3 траты</h3>
+    <div id="an-top"></div>
+  </div>
 </div>
-<div class="sheet" id="sheet-currency">
-  <div class="back-row" onclick="openSheet('settings')">‹ Назад</div>
-  <div class="sheet-title">Валюта</div>
-  <div id="currOptions"></div>
+
+<!-- ADD PAGE -->
+<div id="addpage" class="hidden">
+  <div class="page-head">
+    <button class="backb" onclick="closeAdd()">←</button>
+    <h2>Добавить</h2>
+  </div>
+  <div style="padding:0 16px">
+    <div class="seg">
+      <button id="seg-exp" class="on" onclick="setKind('expense')">Расход</button>
+      <button id="seg-inc" onclick="setKind('income')">Доход</button>
+    </div>
+    <div class="fl">
+      <label>Название</label>
+      <input class="field" id="f-name" placeholder="">
+    </div>
+    <div class="fl">
+      <label>Сумма</label>
+      <input class="field" id="f-amount" type="number" inputmode="decimal" placeholder="0">
+    </div>
+    <div class="fl">
+      <label>Когда</label>
+      <button class="pick-btn" onclick="document.getElementById('f-date').showPicker?document.getElementById('f-date').showPicker():document.getElementById('f-date').click()">
+        <span id="f-date-label">Сегодня</span><span class="chev">▾</span>
+      </button>
+      <input type="date" id="f-date" class="hidden">
+    </div>
+    <div class="fl">
+      <label>Категория</label>
+      <button class="pick-btn" id="f-cat-btn" onclick="openSheet('cats')">
+        <span id="f-cat-label">📦 Прочее</span><span class="chev">▾</span>
+      </button>
+    </div>
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closeAdd()">Отменить</button>
+      <button class="btn primary" onclick="saveTx()">Добавить</button>
+    </div>
+  </div>
 </div>
-<div class="sheet" id="sheet-theme">
-  <div class="back-row" onclick="openSheet('settings')">‹ Назад</div>
-  <div class="sheet-title">Тема</div>
-  <div class="theme-opt" data-t="light" onclick="setTheme('light')">☀️ Светлая</div>
-  <div class="theme-opt" data-t="dark" onclick="setTheme('dark')">🌙 Тёмная</div>
-  <div class="theme-opt" data-t="system" onclick="setTheme('system')">⚙ Системная</div>
+
+<!-- OVERLAY + SHEETS -->
+<div class="overlay" id="ovl" onclick="closeAll()"></div>
+
+<div class="sheet" id="sh-settings">
+  <div class="back-row"><button onclick="closeAll()">‹ Назад</button></div>
+  <h2>Настройки</h2>
+  <div class="frow" onclick="openSheet('currency')"><span>Валюта</span><b id="cur-set"></b></div>
+  <div style="padding-top:14px;font-size:13px;color:var(--muted);margin-bottom:8px">Тема</div>
+  <button class="theme-opt" data-th="light" onclick="setTheme('light')">☀️ Светлая</button>
+  <button class="theme-opt" data-th="dark" onclick="setTheme('dark')">🌙 Тёмная</button>
+  <button class="theme-opt" data-th="system" onclick="setTheme('system')">⚙️ Системная</button>
 </div>
-<div class="sheet" id="sheet-balance">
-  <div class="sheet-title">Изменить баланс</div>
-  <input type="text" inputmode="decimal" class="balance-input" id="balEditInput" placeholder="Новая сумма">
-  <button class="btn-primary" style="margin-top:10px" onclick="saveBalance()">Сохранить</button>
+
+<div class="sheet" id="sh-currency">
+  <div class="back-row"><button onclick="openSheet('settings')">‹ Назад</button></div>
+  <h2>Выберите валюту</h2>
+  <div class="cur-grid sheet-grid" id="sh-currencies"></div>
+</div>
+
+<div class="sheet" id="sh-cats">
+  <div class="back-row"><button onclick="closeAll()">‹ Назад</button></div>
+  <h2>Выберите категорию</h2>
+  <div id="cats-list"></div>
+</div>
+
+<div class="sheet" id="sh-balance">
+  <div class="back-row"><button onclick="closeAll()">‹ Назад</button></div>
+  <h2>Изменить баланс</h2>
+  <input class="field" id="bal-input" type="number" inputmode="decimal">
+  <button class="btn primary" onclick="saveBalance()">Сохранить</button>
+</div>
+
+<div class="sheet" id="sh-debts">
+  <div class="back-row"><button onclick="closeAll()">‹ Назад</button></div>
+  <h2>Долги</h2>
+  <div class="sumline" style="margin:0 0 14px"><span>Всего долгов</span><b id="debt-total"></b></div>
+  <div id="debts-list"></div>
+  <button class="btn primary" onclick="openNewDebt()">Добавить долг</button>
+  <button class="btn ghost" onclick="closeAll()">Отменить</button>
+</div>
+
+<div id="newdebt">
+  <h2 style="font-size:19px;font-weight:700;margin-bottom:14px">Новый долг</h2>
+  <div class="fl">
+    <label>Название</label>
+    <input class="field" id="d-name" placeholder="например: кредит">
+  </div>
+  <div class="fl">
+    <label>Сумма</label>
+    <input class="field" id="d-amount" type="number" inputmode="decimal" placeholder="0">
+  </div>
+  <button class="btn primary" onclick="saveDebt()">Сохранить</button>
 </div>
 
 <script>
-const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-if (tg) { tg.ready(); tg.expand(); }
-
-/* ---------- данные ---------- */
-const CURRENCIES = [
-  {code:'KZT', sym:'₸', name:'Тенге'},
-  {code:'RUB', sym:'₽', name:'Рубль'},
-  {code:'UAH', sym:'₴', name:'Гривна'},
-  {code:'BYN', sym:'Br', name:'Бел. рубль'},
-  {code:'USD', sym:'$', name:'Доллар'},
-  {code:'KGS', sym:'с', name:'Сом'},
-  {code:'UZS', sym:'сум', name:'Сум'},
-  {code:'AMD', sym:'֏', name:'Драм'}
+/* ================= CATEGORIES ================= */
+const CATS=[
+{id:'food',n:'Еда и напитки',i:'🍔',c:'#f59e42',w:['кофе','чай','еда','обед','ужин','завтрак','пицца','бургер','шаурма','пирожок','сэндвич','салат','суп','паста','роллы','суши','шашлык','перекус','снек','чипсы','шоколад','конфеты','печенье','мороженое','торт','выпечка','хлеб','булка','молоко','кефир','йогурт','сыр','яйца','колбаса','сосиски','мясо','курица','рыба','креветки','овощи','фрукты','яблоки','бананы','апельсины','картошка','помидоры','огурцы','лук','гречка','рис','макароны','крупа','мука','сахар','соль','масло','сок','вода','лимонад','кола','энергетик','пиво','вино','шампанское','пятёрочка','магнит','ашан','лента','вкусвилл','бистро','столовая','фастфуд','доставка','яндекс еда','samokat','самокат','перекресток','дикси','киоска','напиток','семечки','орехи','сухофрукты','джем','мёд','кефир','сметана','майонез','кетчуп','соус','приправа','гречневая','овсянка','геркулес','пельмени','вареники','пиццерия','кафе','ресторан','бар','закуска','десерт','капучино','латте','американо','эспрессо','раф','матча','какао','пастила','зефир','халва','чипсы','сухарики','снеки','обед на работу','комплексный обед','кофе с собой','стритфуд']},
+{id:'home',n:'Жилье',i:'🏠',c:'#7a6cf0',w:['аренда','аренду','квартира','квартиру','коммуналка','жкх','жку','электричество','свет','газ','отопление','вода горячая','вода холодная','квартплата','ионайл','кондоминиум','уборка дома','internet','интернет','домашний интернет','интернет провайдер','аеб','аренда жилья','домен','ремонт квартиры','домашние платежи','ипотека','консьерж','домофон','мусор','вывоз мусора','капремонт','обслуживание дома','водоснабжение','канализация','пломба','счётчики','показания счётчиков','кондиционер дома','отопительный сезон']},
+{id:'transport',n:'Транспорт',i:'🚕',c:'#4fa3f7',w:['такси','яндекс такси','uber','убер','бензин','азс','заправка','автобус','троллейбус','трамвай','метро','метрополитен','электричка','электропоезд','поезд','маршрутка','проездной','транспортная карта','онай','онай.','билет на автобус','шиномонтаж','мойка машины','автомойка','масло двигатель','антифриз','тосол','парковка','парковочное место','транспорт','проезд','проездной билет','самокат аренда','велопрокат','каршеринг','делюс','делимобиль','сити драйв','билеты на самолёт не тут','ж д','жд билет','ржд','касса ржд','автовокзал','маршрут','транспортная карта онай']},
+{id:'beauty',n:'Красота',i:'💅',c:'#f06ca8',w:['маникюр','педикюр','ногти','парикмахерская','стрижка','стричь','салон красоты','косметолог','эпиляция','депиляция','брови','ресницы','ламинирование','окрашивание','укладка','барбер','барбершоп','бритва','гель лак','гель-лак','наращивание','макияж','визажист','массаж лица','чистка лица','ботокс','филлер','косметолог салон','косметичка','блеск для губ','тушь','помада','пудра','тональный крем','румяна','хайлайтер','консилер','палетка теней','кисть для макияжа','спонж','пилочка','лак для ногтей','средство для снятия лака','шампунь салонный','маска для волос салонная','салонный уход','curl салон','плойка','утюжок для волос','фен','бигуди','косички','афрокосички','наращивание волос','парафинотерапия','солярий','автозагар']},
+{id:'health',n:'Здоровье',i:'💊',c:'#42c98f',w:['аптека','лекарство','таблетки','витамины','врач','приём врача','терапевт','стоматолог','дантист','анализы','анализ крови','узи','рентген','мрт','флюорография','прививка','вакцина','маска медицинская','бинт','пластырь','градусник','термометр','тонометр','глюкометр','инсулин','шприц','капли','мазь','гель лечебный','спрей','сироп от кашля','жаропонижающее','обезболивающее','парацетамол','ибупрофен','активированный уголь','смекта','но-шпа','валидол','корвалол','настойка','микстура','поликлиника','больница','клиника','скорая','вызов врача','медосмотр','медкнижка','стоматология','протезирование','брекеты','имплант','лечебная процедура','физиотерапия','массаж лечебный','офтальмолог','окулист','капли для глаз','очки не тут','покупка лекарств','рецепт','аптечная карта','санаторий','профосмотр','диспансеризация']},
+{id:'sport',n:'Спорт',i:'⚽',c:'#e8544f',w:['спортзал','тренажерный зал','тренажёрный зал','фитнес','фитнес клуб','абонемент в спортзал','йога','пилатес','плавание','бассейн','бассейна','футбол','баскетбол','волейбол','теннис','бадминтон','бокс','карате','дзюдо','единоборства','тренер','персональная тренировка','групповая тренировка','кроссфит','зумба','танцы','танцевальная студия','скандинавская ходьба','беговые кроссовки не тут','гантели','штанга','гири','коврик для йоги','эспандер','скакалка','обруч','мяч футбольный','мяч баскетбольный','волейбольный мяч','ракетка','бадминтонная ракетка','накладки для настольного тенниса','шорт-трек','ролики','коньки','лыжи','сноуборд','снаряжение для спорта','спортивная форма','футбольная форма','мел','магнезия','спортивное питание','протеин','креатин','vitamins спорт','бассейн абонемент','зал аренда','соревнования взнос','марафон взнос','стартовый взнос']},
+{id:'clothes',n:'Одежда и обувь',i:'👕',c:'#a855f7',w:['одежда','футболка','майка','рубашка','блузка','платье','юбка','брюки','джинсы','шорты','куртка','пальто','плащ','шуба','свитер','свитшот','худи','толстовка','кофта','кардиган','пиджак','костюм','галстук','ремень','носки','трусы','бельё','нижнее бельё','пижама','халат','купальник','плавки','перчатки','шарф','шапка','кепка','панама','шляпа','зонт дождевой','обувь','кроссовки','ботинки','туфли','сапоги','валенки','сандалии','шлёпанцы','сланцы','босоножки','ботильоны','полуботинки','стельки','шнурки','носки спортивные','джинсовая куртка','кожаная куртка','пуховик','ветровка','спортивный костюм','легинсы','леггинсы','юбка-шорты','пиджак мужской','платье летнее','сарафан','пончо','накидка','болеро','жилет','джемпер','лонгслив','поло','реглан','бомбер','анорак','ветровка демисезонная','одежда детская','детская одежда','одежда для дома','домашняя одежда','одежда для спорта','одежда для сна','combidress','магазины одежды','zara','h&m','унiqlo','globe','globo','sinsay','cropp','house','reserved','ostin','bounce','bounce store','мотивация одежды']},
+{id:'subs',n:'Платные подписки',i:'📺',c:'#f7b32b',w:['подписка','спотифай','spotify','нетфликс','netflix','юла plus','ютуб премиум','youtube premium','звук','подписка на музыку','подписка на фильмы','онлайн-кинотеатр','кинопоиск','ivi','амедиатека','okko','стс премьер','премьера','облачное хранилище','i cloud','icloud','гугл диск подписка','google one','яндекс плюс','яндекс.плюс','яндекс 360','мтс premium','билайн хайв','магнит подписка','самокат плюс','самокат.плюс','доставка плюс','клубная карта','программа лояльности платная','подписка на игры','xbox game pass','playstation plus','ps plus','steam подписка','дотер плюс','магн subs','gift подписка','подписки приложений','app store подписка','play market подписка','реклама отключить подписка','подписка на рассылку']},
+{id:'homegoods',n:'Товары для дома',i:'🧴',c:'#26a69a',w:['мыло','шампунь','кондиционер для волос','бальзам для волос','гель для душа','пена для ванны','дезодорант','антиперспирант','туалетная бумага','бумажные полотенца','салфетки','платочки','зубная щётка','зубная паста','ополаскиватель','зубная нить','швабра','тряпка','губка','средство для мытья посуды','порошок стиральный','кондиционер для белья','кондиционер для белья не сюда? нет сюда','отбеливатель','пятновыводитель','чистящее средство','средство для труб','освежитель воздуха','аромадиффузор','свеча','свечи ароматические','пакеты мусорные','пакеты','фольга','пищевая плёнка','пергамент','скатерть одноразовая','салфетки бумажные','полотенца бумажные','губки для посуды','щётка для туалета','шипучие таблетки для унитаза','хранение продуктов','контейнеры для еды','пакет для заморозки','скрепки','резинки канцелярские не сюда','батарейки','лампочки','удлинитель','переходник','розетка','выключатель','лента изолента','скотч','клей','суперклей','швейная игла','нитки','пуговицы','штопка','одеяло','подушка','простынь','наволочка','пододеяльник','покрывало','плед','матрас','чехол на матрас','полотенце','халат банный','коврик для ванной','шторка для душа','шторка','карниз','крепёж','дюбель','шуруп','саморез','гвозди','мебельная фурнитура','скотч двусторонний','липучки','крючки','вешалки','сушилка для белья','утюг гладильная доска не сюда','пылесос мешки','мешки для пылесоса','фильтр для пылесоса','картридж для фильтра','водяной фильтр','фильтр для воды','кувшин фильтр','сменный модуль','чистящее для стёкол','чистящее для плиты','средство для микроволновки','средство для духовки','средство от накипи','средство для стиральной машины','таблетки для посудомойки','соль для посудомойки','ополаскиватель посудомойки','пакет в мусоропровод','утилизация мусора','вывоз хлама','хладагент','усилитель запаха','ароматизатор помещения','освежитель carpets','чистка ковра','порошок для ковров','шампунь для ковров','воск для мебели','полироль','салфетки для техники','антистатик','спрей для монитора','средство для экрана','защитная плёнка не сюда','гладильные принадлежности','крахмал','отпариватель accessories']},
+{id:'fun',n:'Развлечение',i:'🎮',c:'#8b5cf6',w:['кино','кинотеатр','билет в кино','концерт','билет на концерт','театр','билет в театр','выставка','музей','билет в музей','парк аттракционов','аттракционы','аквапарк','боулинг','бильярд','квест','квест-рум','квесты','виртуальная реальность','vr клуб','клуб игр','игры','игра','steam','стим','playstation','плейстейон','xbox','игровая подписка','донат в игру','донат','внутриигровая покупка','пополнение аккаунта игры','настольные игры','настольная игра','карты игральные','пазл','пазлы','лего','lego','конструктор','мячик для игры','батут','парк развлечений','детский городок','караоке','караоке-бар','дартс','бильярдный клуб','пейнтбол','лазертаг','батутный центр','скалодром','верёвочный парк','прогулка на катере','прокат лодки','прокат велосипеда не сюда','прокат коньков','каток','лёд','билет на каток','цирк','билет в цирк','зоопарк','билет в зоопарк','планетарий','океанариум','дельфинарий','автосалон выставка','фестиваль','карнавал','ярмарка','мастер-класс творческий','гончарная студия','арт студия','рисование мастер-класс','вокальная студия','музыкальная студия','абонемент в кружок','кружок творческий','секция творческая','настольные игры кафе','антикафе','тайм-кафе','бильярдные аксессуары','билеты в аквапарк','экскурсия городская','прогулка экскурсия','смотровая площадка','билет на смотровую']},
+{id:'pets',n:'Домашние животные',i:'🐾',c:'#e8964f',w:['корм для кошек','корм для собак','корм','кошачий корм','собачий корм','наполнитель','наполнитель для лотка','лоток','поводок','ошейник','намордник','игрушка для кошки','игрушка для собаки','когтеточка','когтеточка кошки','переноска','лежанка','домик для кошки','миска для животных','кормушка','поилка','витамины для животных','лекарство для животных','ветеринар','ветклиника','прививка животному','чипирование','стрижка когтей','груминг','стрижка собаки','мытьё животного','шампунь для животных','ошейник собаки','песок для кошек','лоток для кошек','пелёнки для животных','переноска для кошек','клетка','аквариум','корм для рыб','корм для птиц','клетка для птиц','подстилка','дрел','drone нет','питомник','пристройство животных','зоомагазин','ветаптека','ветпрепарат','глистогонное','капли от блох','ошейник от клещей','шлейка','миска собаки','миска кошки','корм премиум','сухой корм','влажный корм','консервы для животных','лакомства для животных','палочки для кошек','дразнилка','мячик для собаки','апортировка','дрессировка','кинолог','передержка','зоогостиница','выгул собак','ситтер для животных']},
+{id:'care',n:'Личный уход',i:'🧼',c:'#38bdf8',w:['зубная паста','зубная щетка','зубная щётка','ополаскиватель для рта','зубная нить','ирригатор','насадки для ирригатора','мыло жидкое','мыло туалетное','гель для душа','гель для тела','лосьон для тела','крем для тела','крем для рук','крем для ног','масло для тела','скраб для тела','мочалка','пенка для ванны','дезодорант','дезодорант-антиперспирант','ватные диски','ватные палочки','вата','салфетки для лица','бумажные платочки','расчёска','щётка для волос','заколки','резинки для волос','резинки','невидимки','крабики','лак для волос','мусс для волос','воск для волос','паста для укладки','гель для укладки','масло для волос','маска для волос','бальзам-ополаскиватель','сыворотка для волос','шампунь сухой','краска для волос','оттеночный шампунь','осветлитель','окислитель','кисть для окрашивания','перчатки для окрашивания','пена для бритья','пена','гель для бритья','пена для бритья мужская','лезвия','сменные кассеты','станок для бритья','электробритва','аксессуары для бритья','после бритья лосьон','бальзам после бритья','аптечка личная не сюда','крем до и после','крем до и после загара','гигиеническая помада','бальзам для губ','скраб для губ','полоски для носа','полоски для лица','патчи для глаз','патчи','маска для лица','маска тканевая','маска глиняная','тоник для лица','мист','эмульсия','сыворотка для лица','крем для лица','дневной крем','ночной крем','крем вокруг глаз','масло для лица','мицеллярная вода','гидрофильное масло','пенка для умывания','гель для умывания','скраб для лица','пилинг','кислоты','ниацинамид','ретинол','витамин с для лица','spf','санскрин','солнцезащитный крем','после загара','термальная вода','косметические диски','спонжи для макияжа','бьюти-блендер','чистящая кисть для пудры','мыло для рук','крем-мыло','санитайзер','антисептик для рук','ватные палочки для ушей','ушные палочки','полотенце для рук','полотенце для лица','тюрбан','расчёска-массаж','щётка массажная','гребень','бигуди-липучки','заколки-крабики','резиночки детские','детский шампунь','детский крем','детское мыло','подгузники','памперсы','влажные салфетки детские','детская присыпка','детское масло','детские присыпки','крем под подгузник','детская зубная паста','детская щётка','соска','пустышка','бутылочка','поильник','нагрудник','слюнявчик','горшок детская','детская ванночка','круг на шею','детский крем от опрелостей','детская мочалка','детские ножницы','детская расчёска','детский стиральный порошок не сюда','детские салфетки','детская косметика','детский шампунь без слез','детская пена для ванны','детское молочко','детский дезодорант','детский гель для душа','детская зубная нить','детский ополаскиватель']},
+{id:'edu',n:'Образование',i:'📚',c:'#3b82f6',w:['книги','книга','учебник','тетрадь','ручка','карандаш','ластик','точилка','линейка','пенал','обложки','дневник школьный','дневник','альбом для рисования','краски акварель','краски гуашь','кисти для рисования','кисти','фломастеры','маркеры','цветные карандаши','цветные ручки','шариковые ручки','гелевые ручки','блокнот','блокноты','ежедневник','планер','стикеры','стикеры для заметок','клей-карандаш','клей канцелярский','ножницы канцелярские','степлер','скобы','скрепки','дырокол','штемпель','папки','скоросшиватель','папка-регистратор','архивная папка','планшет для документов','бумага офисная','бумага а4','цветная бумага','картон','цветной картон','калькулятор','обложка для книг','закладки','читательский билет','школьная форма','школьный рюкзак','рюкзак школьный','пенал школьный','спортивная форма школьная не сюда','сменная обувь школьная','курсы','онлайн-курс','онлайн-курсы','языковые курсы','курс английского','репетитор','репетиторство','занятия с репетитором','подготовка к экзаменам','егэ','огэ','взнос за обучение','оплата обучения','семестр','учебный взнос','студенческий взнос','мастер-класс образовательный','вебинар','конференция взнос','марафон обучающий','подписка на курсы','курс программирования','курс дизайна','диплом взнос','методички','конспекты','учебные материалы','учебники б/у','канцтовары','канцелярия','офисные принадлежности','бумага для принтера','картридж для принтера','чернила','тонер','принтер принадлежности','принадлежности для учёбы','словарь','энциклопедия','атлас','карты учебные','глобус','микроскоп детский','телескоп детский','лабораторные принадлежности','химические реагенты не сюда','школьное питание не сюда','столовая школа не сюда','школьный взнос','родительский комитет','сборы на школу','подарок учителю не сюда']},
+{id:'travel',n:'Путешествие',i:'✈️',c:'#06b6d4',w:['билеты на самолёт','авиабилеты','самолёт','отель','отель бронь','хостел','хостел бронь','гостиница','апартаменты','бронирование','бронь','тур','турпакет','путёвка','турагентство','виза','визовый сбор','страховка в поездку','страховка туристическая','багаж доплата','доплата за багаж','доп багаж','трансфер','трансфер аэропорт','аэропорт трансфер','аренда авто в поездке','прокат авто путешествие','билеты на поезд путешествие','путешествие','отпуск','отпуск поездка','поездка','экскурсия туристическая','экскурсия','гид','экскурсовод','сувениры','сувенир','открытки из поездки','магнитик','магнитики','карта города туристическая','путеводитель','городской транспорт в поездке','метро в поездке','туристическая карта','путешествие автобусом','чартер','санаторий путешествие не сюда','пансионат','база отдыха','кемпинг','палатка кемпинг не сюда','круиз','паром','переправа','билеты на паром','аэропорт','аэропортовый сбор','регистрация на рейс','место в самолёте','питание в самолёте','зал ожидания','бизнес-лаундж','визовая поддержка','миграционный сбор','консульский сбор','паспорт загран','загранпаспорт','загранпаспорт оплата','проверка багажа не сюда','стоянка аэропорт','парковка аэропорта','хостел оплата','апарт-отель','минимаркет в отеле не сюда','мини-бар','ресторан отеля','завтрак в отеле','все включено','всё включено','тур все включено','экскурсионный пакет','городская карта туриста','tourist card','travel card','мультитул путешественника не сюда','чемодан','чемодан путешествие','сумка дорожная','косметичка дорожная не сюда','подушка для полёта','дорожный набор','набор в самолёт','адаптер для розеток','переходник для розеток путешествие','конвертер напряжения','uninterruptible не сюда','страховка от отмены','отмена рейса страховка','билет туда-обратно','перелёт туда-обратно','перелёт','полёт','сборы аэропорта','travel insurance','туры','путёвки','горящие туры','горящий тур','all inclusive']},
+{id:'taxes',n:'Налоги',i:'🏛️',c:'#94a3b8',w:['налоги','налог','ндфл','нпф','пенсионный взнос','госпошлина','госпошлину','штраф гибдд','штраф','штрафы','пени','недоимка','задолженность по налогам','налог на имущество','налог на землю','налог на автомобиль','транспортный налог','налог на квартиру','налог на недвижимость','налог на прибыль не сюда','самозанятость налог','налог самозанятого','налог на профессиональный доход','налоговый вычет','вычет','декларация','подача декларации','налоговая','налоговая оплата','фнс','фнс оплата','инспекция','инспекция налоговая','кассовый чек не сюда','сторно не сюда','коммунальный налог','налог на роскошь','акциз','таможенная пошлина','таможня','таможенный сбор','пошлина','пошлину','сбор','госуслуги пошлина','оплата госпошлины','замена паспорта пошлина','паспорт пошлина','водительское удостоверение пошлина','права пошлина','регистрация транспорта пошлина','регистрация авто пошлина','постановка на учёт пошлина','регистрация брака пошлина','свидетельство пошлина','выписка из реестра пошлина','нотариус пошлина','завещание пошлина','аренда гос не сюда','сбор за услуги','обязательный взнос','страховые взносы','взносы ип','взнос ип','ип взнос','фиксированный взнос','страховые взносы ип','налог усн','усн','упрощёнка налог','ндс','ндс оплата','патент','патент налог','енвд не сюда','налог на азарт не сюда','штраф гибдд','штраф за парковку','штраф за нарушение','штраф пдд','штраф пдд','пдд штраф','ошибочный штраф не сюда','судебные издержки не сюда','исполнительский сбор','пошлина суд','госпошлина суд','госпошлина в суд','арбитражный сбор','сбор за визу','консульский сбор не сюда','оформление документов пошлина','нотариальные действия пошлина','сбор за справку','справка пошлина','выписка егрн пошлина','выписка егрн','кадастровая выписка пошлина','налоговый вычет имущественный','вычет ндфл','возврат налога не доход не сюда','декларация 3-ндфл','3-ндфл','налоговый калькулятор не сюда']},
+{id:'repair',n:'Ремонт',i:'🛠️',c:'#f97316',w:['обои','обои клеить','клей для обоев','грунтовка','шпаклёвка','шпатлевка','штукатурка','цемент','песок строительный','песок','щебень','кирпич','блоки строительные','газобетон','пеноблок','гипсокартон','профиль для гипсокартона','саморезы','шурупы','гвозди строительные','дюбель-гвозди','анкера','краска','краска для стен','краска для потолка','эмаль','лак','лак для дерева','морилка','олифа','праймер','грунтовка глубокого проникновения','шпатель','малярный скотч','малярная лента','валик','кисти малярные','кисти для краски','малярная ванночка','скотч строительный','плёнка защитная','укрывная плёнка','мешки для мусора строительные','мешки строительные','пила','ножовка','лобзик','болгарка','дрель','перфоратор','шуруповёрт','отвёртки','набор отвёрток','ключи','гаечные ключи','разводной ключ','плоскогубцы','пассатижи','кусачки','степлер строительный','молоток','кувалда','топор','стамеска','напильник','наждачная бумага','шлифовальная сетка','диск для болгарки','диск отрезной','диск шлифовальный','свёрла','коронки','бур','биты','насадки для шуруповёрта','рулетка','уровень','лазерный уровень','отвес','уголок','карандаш строительный','маркер строительный','мел строительный','маска защитная','очки защитные','перчатки рабочие','респиратор','наушники защитные','каска','страховочный трос не сюда','лестница стремянка','стремянка','подмости','козлы','тачка строительная','тачка','вёдра строительные','вёдра','миксер для раствора','миксер','правило','правило штукатурное','терка','тёрка штукатурная','штукатурный станок не сюда','кельма','мастерок','затирка','затирка для плитки','плитка','плитка керамическая','керамогранит','клей для плитки','крестики для плитки','уровень плиточный','плиткорез','стеклорез','труба','трубы','труба пластиковая','труба металлическая','фитинги','кран','кран шаровый','смеситель','смеситель для кухни','смеситель для ванны','душевая лейка','шланг для душа','сифон','гофра','унитаз','раковина','ванная','ванная акриловая','душевая кабина','полотенцесушитель','радиатор','батарея отопления','кран маевского','теплый пол','тёплый пол','плёнка теплого пола','терморегулятор','провод','провода','кабель','кабель канал','розетки','выключатели','автомат','автомат защиты','узо','дифавтомат','щиток электрический','гофра для проводов','стяжки кабельные','изолента','клеммы','клеммники','светильник','люстра','бра','точечные светильники','лента светодиодная','диммер','лампочка led','лампочки','прожектор','звонок дверной','доводчик двери','замок','замок дверной','цилиндр замка','ручка дверная','петли дверные','дверь','двери','дверь межкомнатная','дверь входная','коробка двери','наличник','доборы','планка порожек','порожек','линолеум','ламинат','ламинат напольный','паркет','паркетная доска','плинтус','плинтус напольный','ковролин','ковролин напольный','пробковая подложка','подложка','клей для ламината','герметик','силикон','пена монтажная','монтажная пена','пистолет для пены','уайт-спирит','растворитель','ацетон','бензин строительный не сюда','смазка','wd-40','средство от ржавчины','антисептик для дерева','огнебиозащита','средство от плесени','антисептик','утеплитель','минеральная вата','пенопласт','пеноплекс','пленка пароизоляция','пароизоляция','гидроизоляция','мембрана','скотч пароизоляционный','сетка армирующая','сетка штукатурная','уголок малярный','шпатлевка финишная','шпаклевка стартовая','потолочный плинтус','молдинг','багет','декоративная штукатурка','декоративный камень','мозаика','мозаика плитка','панели пвх','пвх панели','вагонка','имитация бруса','планкен','террасная доска','сайдинг','профнастил','металлочерепица','шифер','ондулин','мягкая кровля','гибкая черепица','утеплитель кровли','гидроизоляция кровли','конёк','отлив','откосы','наличник оконный','подоконник','подоконник пвх','стеклопакет','окна пвх','окно','окна','фурнитура окон','ручка окна','москитная сетка','проветриватель','бризер','рекуператор','вентилятор вытяжной','вытяжка','воздуховод','решётка вентиляционная','дымоход','дымоходный коллектор не сюда','печные принадлежности','каминные аксессуары не сюда','аренда инструмента','аренда перфоратора','аренда болгарки','аренда лестницы','вызов мастера','вызов сантехника','вызов электрика','вызов плотника','услуги ремонтные','ремонт под ключ','малярные работы','штукатурные работы','плиточные работы','электромонтажные работы','сантехнические работы','работы по дому','помощь по ремонту','сборка мебели','сборка шкафа','сборка кровати','ремонт мебели','перетяжка мебели','ремонт бытовой техники','мастер по бытовой технике','сервисный центр не сюда','замена уплотнителя','замена стекла','стекло нарезка','стекло','зеркало','зеркало в ванную','полка','полки','крепление полки','консоли','кронштейн для полки','дюбель-крюк','анкер-крюк','полочка для ванны','дозатор для мыла не сюда','держатель для полотенца не сюда','вешалка','вешалки настенные','крючки настенные','штанга для вешалок не сюда','труба для шкафа не сюда']},
+{id:'other',n:'Прочее',i:'📦',c:'#64748b',w:[]}
 ];
-const CATS = [
-  {id:'food',  name:'Еда',        emoji:'🍔', color:'#f5a623',
-   kw:['кофе','чай','еда','обед','ужин','завтрак','пицца','бургер','шаурма','суши','роллы','лапша','салат','пельмени','перекус','продукты','хлеб','молоко','вода','сок','напиток','кола','пепси','шоколад','сладкое','мороженое','десерт','торт','снек','фастфуд','ресторан','кафе','столовая','закуска','банкет','готовая еда','айран','батон','яйца','сыр','колбаса','гречка','рис','макароны','гранола','снеки','чипсы','печенье','булка','лаваш','энергетик','лимонад','latte','latte','бахча','фрукт','овощи','яблоки','бананы','мясо','курица','пельмень']},
-  {id:'transport', name:'Транспорт', emoji:'🚌', color:'#4d8de8',
-   kw:['такси','яндекс','inDrive','indrive','автобус','метро','трамвай','троллейбус','маршрутка','проезд','билет','бензин','заправка','топливо','гсм','поезд','жд','электричка','самолёт','самолет','авиа','парковка','мойка авто','шины','техосмотр']},
-  {id:'health', name:'Здоровье', emoji:'💊', color:'#34c759',
-   kw:['аптека','лекарство','лекарства','таблетки','витамины','врач','клиника','анализы','анализ','зуб','стоматолог','медицина','мазь','бинт','маска','термометр','прививка']},
-  {id:'fun', name:'Развлечения', emoji:'🎮', color:'#af52de',
-   kw:['кино','фильм','подписка','нетфликс','netflix','spotify','случай','игра','игры','steam','стеам','концерт','боулинг','караоке','фитнес','спортзал','зал','бассейн','парк','аттракцион','квест','настолки','книги','книга','музей','театр']},
-  {id:'comms', name:'Связь', emoji:'📱', color:'#ff9500',
-   kw:['мтс','mts','билайн','beeline','activ','актив','altel','тел2','tele2','связь','интернет','тариф','пополнение','пополнить','баланс телефона','sim','сим']},
-  {id:'home', name:'Дом', emoji:'🏠', color:'#8e8e93',
-   kw:['аренда','квартира','квартплата','коммуналка','свет','отопление','газ','ремонт','мебель','хозяйственные','хоз','химия','чистящие','туалетная бумага','стиральный порошок','лампочки','батареи','шторы','коврик']}
-];
-const OTHER = {id:'other', name:'Другое', emoji:'❓', color:'#8e8e93'};
 
-let S = loadState();
-function loadState(){
-  try { const raw = localStorage.getItem('spendApp'); if (raw) return JSON.parse(raw); } catch(e){}
-  return {onboarded:false, balance:0, currency:'KZT', theme:'system', expenses:[], onbCurrency:'KZT'};
+function classify(name){
+  const t=(name||'').toLowerCase();
+  let best=null,score=0;
+  for(const c of CATS){
+    for(const w of c.w){
+      if(t.includes(w)){
+        const s=w.includes(' ')?2:1;
+        if(s>score){score=s;best=c;}
+      }
+    }
+  }
+  return best||CATS.find(c=>c.id==='other');
 }
-function save(){ try{ localStorage.setItem('spendApp', JSON.stringify(S)); }catch(e){} }
-function haptic(kind){ if (tg && tg.HapticFeedback) { try{ kind==='ok'?tg.HapticFeedback.notificationOccurred('success'):tg.HapticFeedback.impactOccurred('light'); }catch(e){} } }
-function curr(){ return CURRENCIES.find(c=>c.code===S.currency) || CURRENCIES[0]; }
-function fmt(n){
-  const v = Math.abs(n);
-  const s = Number.isInteger(v) ? v.toLocaleString('ru-RU') : v.toLocaleString('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:2});
-  return (n<0?'−':'') + s + ' ' + curr().sym;
+const catById=id=>CATS.find(c=>c.id===id)||CATS[CATS.length-1];
+
+/* ================= STATE ================= */
+const CURRENCIES=[{c:'₸',n:'Тенге'},{c:'₽',n:'Рубль'},{c:'$',n:'Доллар'},{c:'€',n:'Евро'},{c:'£',n:'Фунт'},{c:'₺',n:'Лира'},{c:'₴',n:'Гривна'},{c:'₸',n:'Тенге2'}];
+CURRENCIES[7]={c:'֏',n:'Драм'};
+const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+let S=load();
+function load(){
+  try{
+    const raw=localStorage.getItem('spend_v2');
+    if(raw)return JSON.parse(raw);
+  }catch(e){}
+  return {onboarded:false,currency:'₸',balance:0,tx:[],debts:[],theme:'system'};
+}
+function save(){localStorage.setItem('spend_v2',JSON.stringify(S));}
+
+const $=id=>document.getElementById(id);
+const fmt=n=>{const neg=n<0;const v=Math.abs(Math.round(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'\u2009');return (neg?'−':'')+v;};
+const money=n=>fmt(n)+' '+S.currency;
+const todayISO=()=>{const d=new Date();return d.toISOString().slice(0,10);};
+const isToday=iso=>iso===todayISO();
+const isYesterday=iso=>{const d=new Date();d.setDate(d.getDate()-1);return iso===d.toISOString().slice(0,10);};
+const dayName=iso=>isToday(iso)?'Сегодня':isYesterday(iso)?'Вчера':new Date(iso+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+
+/* ================= THEME ================= */
+function applyTheme(){
+  let t=S.theme;
+  if(t==='system')t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  document.documentElement.setAttribute('data-theme',t);
+  document.querySelectorAll('.theme-opt').forEach(b=>b.classList.toggle('sel',b.dataset.th===S.theme));
+}
+function setTheme(t){S.theme=t;save();applyTheme();}
+
+/* ================= ONBOARDING ================= */
+function buildCurrencies(container,selected){
+  const seen=new Set();let html='';
+  CURRENCIES.forEach(c=>{
+    if(seen.has(c.c))return;seen.add(c.c);
+    html+=`<button class="cur-btn ${c.c===selected?'sel':''}" onclick="pickCurrency('${c.c}')">${c.c}</button>`;
+  });
+  container.innerHTML=html;
+}
+function pickCurrency(c){
+  S.currency=c;save();
+  buildCurrencies($('ob-currencies'),c);
+  buildCurrencies($('sh-currencies'),c);
+  $('cur-set').textContent=c;
+}
+function finishOnboard(){
+  const a=parseFloat($('ob-amount').value)||0;
+  S.balance=a;S.onboarded=true;save();
+  $('onboard').classList.add('hidden');
+  render();
 }
 
-/* ---------- парсер ---------- */
-function parseInput(raw){
-  let t = raw.trim().replace(/\s+/g,' ');
-  const m = t.match(/\d+(?:[ \u00a0]\d{3})*(?:[.,]\d+)?/);
-  if (!m) return null;
-  const amount = parseFloat(m[0].replace(/[ \u00a0]/g,'').replace(',','.'));
-  if (!amount || amount<=0) return null;
-  let name = (t.replace(m[0],'').replace(/[,\.\-–—:;]+/g,' ').trim());
-  if (!name) return null;
-  return {name: name.charAt(0).toUpperCase()+name.slice(1), amount};
-}
-function detectCat(name){
-  const low = name.toLowerCase();
-  for (const c of CATS) if (c.kw.some(k=>low.includes(k))) return c;
-  return OTHER;
+/* ================= NAV ================= */
+function goTab(tab){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  $('page-'+tab).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  window.scrollTo(0,0);
+  if(tab==='history')renderHistory();
+  if(tab==='analysis')renderAnalysis();
 }
 
-/* ---------- рендер ---------- */
-function renderAll(){ renderBalance(); renderStats(); renderRecent(); }
-function renderBalance(){
-  const el = document.getElementById('balanceValue');
-  el.textContent = fmt(S.balance);
-  document.getElementById('balanceCard').classList.toggle('negative', S.balance<0);
+/* ================= STATS ================= */
+let PERIOD='month';
+function setPeriod(p,btn){
+  PERIOD=p;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.per===p));
+  renderStats();
+}
+function periodTx(){
+  const now=new Date();
+  if(PERIOD==='all')return S.tx.filter(t=>t.type==='expense');
+  if(PERIOD==='week'){
+    const from=new Date(now);from.setDate(now.getDate()-7);
+    return S.tx.filter(t=>t.type==='expense'&&new Date(t.date+'T12:00:00')>=from);
+  }
+  const m=now.toISOString().slice(0,7);
+  return S.tx.filter(t=>t.type==='expense'&&t.date.slice(0,7)===m);
 }
 function renderStats(){
-  const now = new Date();
-  const monthExp = S.expenses.filter(e=>{const d=new Date(e.date);return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();});
-  const total = monthExp.reduce((s,e)=>s+e.amount,0);
-  const box = document.getElementById('stats');
-  if (!monthExp.length){ box.innerHTML = '<div class="empty">Пока нет трат — добавь первую выше</div>'; return; }
-  const byCat = {};
-  monthExp.forEach(e=>{ byCat[e.cat] = (byCat[e.cat]||0)+e.amount; });
-  const rows = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
-  box.innerHTML = rows.map(([cid,sum])=>{
-    const c = CATS.find(x=>x.id===cid)||OTHER;
-    const pct = Math.round(sum/total*100);
+  const txs=periodTx();
+  const byCat={};
+  txs.forEach(t=>byCat[t.cat]=(byCat[t.cat]||0)+t.amount);
+  const arr=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const total=arr.reduce((s,c)=>s+c[1],0);
+  const body=$('stats-body');
+  if(!arr.length){body.innerHTML='<div class="empty">Пока нет трат за этот период</div>';return;}
+  body.innerHTML=arr.slice(0,6).map(([id,sum])=>{
+    const c=catById(id);
+    const pct=total?Math.round(sum/total*100):0;
     return `<div class="stat-row">
-      <div class="stat-top"><span class="cat-name">${c.emoji} ${c.name}</span><span>${fmt(sum)} · ${pct}%</span></div>
-      <div class="stat-bar"><div class="stat-fill" style="width:${pct}%;background:${c.color}"></div></div>
+      <div class="ci" style="background:${c.c}22">${c.i}</div>
+      <div class="nm">${c.n}<small>${pct}% от расходов</small><div class="bar"><div style="width:${pct}%;background:${c.c}"></div></div></div>
+      <div class="amt">${money(sum)}</div>
     </div>`;
   }).join('');
 }
-function opRowHTML(e){
-  const c = CATS.find(x=>x.id===e.cat)||OTHER;
-  const d = new Date(e.date);
-  const time = d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-  return `<div class="op-row">
-    <div class="op-emoji">${c.emoji}</div>
-    <div class="op-info"><div class="op-name">${esc(e.name)}</div><div class="op-cat">${c.name} · ${time}</div></div>
-    <div class="op-right"><div class="op-amount">−${fmt(e.amount)}</div></div>
-    <button class="op-del" onclick="delExpense('${e.id}')">✕</button>
+
+/* ================= LATEST ================= */
+function txRow(t,withDel){
+  const c=catById(t.cat);
+  return `<div class="tx-row">
+    <div class="ci" style="background:${c.c}22">${t.type==='income'?'⬆️':c.i}</div>
+    <div class="mid"><div class="nm">${esc(t.name)}</div><div class="cat">${t.type==='income'?'Доход':c.n}</div></div>
+    <div class="amt" style="color:${t.type==='income'?'var(--green)':'inherit'}">${t.type==='income'?'+':'−'}${fmt(t.amount)} ${S.currency}</div>
+    ${withDel?`<button class="del-x" onclick="delTx(${t.id})">✕</button>`:''}
   </div>`;
 }
-function renderRecent(){
-  const box = document.getElementById('recent');
-  const list = S.expenses.slice(-5).reverse();
-  box.innerHTML = list.length ? list.map(opRowHTML).join('') : '<div class="empty">Здесь появятся твои траты</div>';
-}
-function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-/* ---------- действия ---------- */
-let pendingCat = null, pendingParsed = null;
-const inp = document.getElementById('expInput');
-inp.addEventListener('input', ()=>{
-  const p = parseInput(inp.value);
-  pendingParsed = p;
-  const pv = document.getElementById('preview'), cr = document.getElementById('chipRow');
-  if (!p){ pv.style.display='none'; cr.style.display='none'; pendingCat=null; return; }
-  if (!pendingCat) pendingCat = detectCat(p.name);
-  const c = CATS.find(x=>x.id===pendingCat)||OTHER;
-  pv.style.display='flex';
-  pv.innerHTML = `<span>${c.emoji} <b class="preview-amount">${esc(p.name)}</b> · ${fmt(p.amount)}</span>`;
-  cr.style.display='flex';
-  cr.innerHTML = CATS.concat([OTHER]).map(x=>
-    `<div class="chip ${x.id===pendingCat?'sel':''}" onclick="pickCat('${x.id}')">${x.emoji} ${x.name}</div>`).join('');
-});
-function pickCat(id){ pendingCat = id; if (pendingParsed) { const ev = new Event('input'); inp.dispatchEvent(ev); } haptic(); }
-function addExpense(){
-  const p = pendingParsed;
-  if (!p){ haptic(); inp.focus(); return; }
-  S.expenses.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), name:p.name, amount:p.amount, cat:pendingCat||detectCat(p.name).id, date:new Date().toISOString()});
-  S.balance -= p.amount;
-  save(); haptic('ok');
-  inp.value=''; pendingCat=null; pendingParsed=null;
-  document.getElementById('preview').style.display='none';
-  document.getElementById('chipRow').style.display='none';
-  renderAll(); renderHistory();
-}
-document.getElementById('addBtn').addEventListener('click', addExpense);
-inp.addEventListener('keydown', e=>{ if(e.key==='Enter') addExpense(); });
-
-function delExpense(id){
-  const i = S.expenses.findIndex(e=>e.id===id);
-  if (i<0) return;
-  S.balance += S.expenses[i].amount;
-  S.expenses.splice(i,1);
-  save(); haptic(); renderAll(); renderHistory();
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function renderLatest(){
+  const list=S.tx.slice().sort((a,b)=>b.id-a.id).slice(0,2);
+  $('latest-body').innerHTML=list.length?list.map(t=>txRow(t,true)).join(''):'<div class="empty">Пока пусто — добавь первую трату через ＋</div>';
 }
 
-/* ---------- история ---------- */
-let histMonth = new Date();
-function showHistory(){ document.getElementById('main').classList.remove('active'); document.getElementById('history').classList.add('active'); histMonth = new Date(); renderHistory(); haptic(); window.scrollTo(0,0); }
-function showMain(){ document.getElementById('history').classList.remove('active'); document.getElementById('main').classList.add('active'); }
-function shiftMonth(d){ histMonth = new Date(histMonth.getFullYear(), histMonth.getMonth()+d, 1); renderHistory(); haptic(); }
+/* ================= HISTORY ================= */
+let histOffset=0;
+function monthStr(off){
+  const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+off);
+  return d.toISOString().slice(0,7);
+}
+function monthLabel(off){
+  const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+off);
+  return MONTHS[d.getMonth()]+' '+d.getFullYear();
+}
+function histShift(d){histOffset+=d;renderHistory();}
 function renderHistory(){
-  document.getElementById('monthLabel').textContent =
-    histMonth.toLocaleDateString('ru-RU',{month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
-  const list = S.expenses.filter(e=>{const d=new Date(e.date);return d.getFullYear()===histMonth.getFullYear()&&d.getMonth()===histMonth.getMonth();})
-    .sort((a,b)=>new Date(b.date)-new Date(a.date));
-  const total = list.reduce((s,e)=>s+e.amount,0);
-  document.getElementById('monthTotal').textContent = '−'+fmt(total);
-  const box = document.getElementById('historyList');
-  if (!list.length){ box.innerHTML = '<div class="empty">В этом месяце трат нет</div>'; return; }
-  const groups = {};
-  list.forEach(e=>{ const d=new Date(e.date); const k=d.toDateString(); (groups[k]=groups[k]||[]).push(e); });
-  let html = '';
-  for (const k in groups){
-    const d = new Date(k);
-    const label = d.toDateString()===new Date().toDateString() ? 'Сегодня'
-      : d.toDateString()===new Date(Date.now()-864e5).toDateString() ? 'Вчера'
-      : d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
-    html += `<div class="day-group"><div class="day-title">${label}</div>${groups[k].map(opRowHTML).join('')}</div>`;
+  const key=monthStr(histOffset);
+  $('hist-month').innerHTML=monthLabel(histOffset);
+  const txs=S.tx.filter(t=>t.date.slice(0,7)===key&&t.type==='expense').sort((a,b)=>b.date.localeCompare(a.date));
+  const sum=txs.reduce((s,t)=>s+t.amount,0);
+  $('hist-sum').textContent=money(sum);
+  if(!txs.length){$('hist-body').innerHTML='<div class="empty">Нет трат за этот месяц</div>';return;}
+  const groups={};txs.forEach(t=>{(groups[t.date]=groups[t.date]||[]).push(t);});
+  $('hist-body').innerHTML=Object.keys(groups).sort((a,b)=>b.localeCompare(a)).map(d=>
+    `<div class="day-head">${dayName(d)}</div>`+groups[d].map(t=>txRow(t,true)).join('')
+  ).join('');
+}
+
+/* ================= ANALYSIS ================= */
+let anOffset=0;
+function anShift(d){anOffset+=d;renderAnalysis();}
+function renderAnalysis(){
+  const key=monthStr(anOffset);
+  $('an-month').innerHTML=monthLabel(anOffset);
+  const exp=S.tx.filter(t=>t.date.slice(0,7)===key&&t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const inc=S.tx.filter(t=>t.date.slice(0,7)===key&&t.type==='income').reduce((s,t)=>s+t.amount,0);
+  $('an-exp').textContent='−'+money(exp);
+  $('an-inc').textContent='+'+money(inc);
+  const net=inc-exp;
+  $('an-net').textContent=(net>=0?'+':'−')+money(Math.abs(net));
+  $('an-net').style.color=net>=0?'var(--green)':'var(--red)';
+  $('an-sub').textContent=exp||inc?'':'Добавьте доход, чтобы видеть итог';
+
+  const byCat={};
+  S.tx.filter(t=>t.date.slice(0,7)===key&&t.type==='expense').forEach(t=>byCat[t.cat]=(byCat[t.cat]||0)+t.amount);
+  const arr=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  drawDonut(arr,exp);
+  $('an-cats').innerHTML=arr.map(([id,sum])=>{
+    const c=catById(id);const pct=exp?Math.round(sum/exp*100):0;
+    return `<div class="tx-row">
+      <div class="ci" style="background:${c.c}22">${c.i}</div>
+      <div class="mid"><div class="nm">${c.n}</div><div class="cat">${money(sum)}</div></div>
+      <div class="pct">${pct}%</div>
+    </div>`;
+  }).join('')||'<div class="empty">Нет данных за этот месяц</div>';
+
+  const top=S.tx.filter(t=>t.date.slice(0,7)===key&&t.type==='expense').sort((a,b)=>b.amount-a.amount).slice(0,3);
+  $('an-top').innerHTML=top.map((t,i)=>`
+    <div class="tx-row">
+      <div class="top-badge" style="color:${['#f5b942','#9aa4b8','#cd7f32'][i]}">0${i+1}</div>
+      <div class="mid"><div class="nm">${esc(t.name)}</div><div class="cat">${catById(t.cat).n}</div></div>
+      <div class="amt">${money(t.amount)}<small>${new Date(t.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}</small></div>
+    </div>`).join('')||'<div class="empty">Пока нет трат</div>';
+}
+function drawDonut(arr,total){
+  const svg=$('donut');const R=75,SW=26,CX=95,CY=95;
+  if(!arr.length){svg.innerHTML=`<circle cx="95" cy="95" r="${R}" fill="none" stroke="var(--card2)" stroke-width="${SW}"/>`;$('donut-legend').innerHTML='';return;}
+  const gap=arr.length>1?4:0;const circ=2*Math.PI*R;
+  let off=0,svgInner='';
+  arr.forEach(([id,sum])=>{
+    const c=catById(id);
+    const frac=total?sum/total:0;
+    const len=Math.max(circ*frac-gap,0.1);
+    svgInner+=`<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="${c.c}" stroke-width="${SW}"
+      stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${-off}" stroke-linecap="round" transform="rotate(-90 ${CX} ${CY})"/>`;
+    off+=circ*frac;
+  });
+  svg.innerHTML=svgInner;
+  $('donut-legend').innerHTML=arr.slice(0,4).map(([id,sum])=>{
+    const c=catById(id);
+    return `<span style="--lc:${c.c}">${c.n} · ${total?Math.round(sum/total*100):0}%</span>`;
+  }).join('');
+}
+
+/* ================= ADD PAGE ================= */
+let ADDKIND='expense',ADDCAT=null,ADDDATE=todayISO();
+function openAdd(){
+  $('addpage').classList.remove('hidden');
+  setKind('expense');
+  $('f-name').value='';$('f-amount').value='';ADDDATE=todayISO();ADDCAT=null;
+  $('f-date').value=ADDDATE;updateDateLabel();
+  window.scrollTo(0,0);
+}
+function closeAdd(){$('addpage').classList.add('hidden');}
+function setKind(k){
+  ADDKIND=k;ADDCAT=null;
+  $('seg-exp').classList.toggle('on',k==='expense');
+  $('seg-inc').classList.toggle('on',k==='income');
+  $('f-name').placeholder=k==='expense'?'например: кофе':'например: зарплата';
+  updateCatLabel();
+}
+function updateDateLabel(){
+  const d=$('f-date').value;
+  ADDDATE=d||todayISO();
+  $('f-date-label').textContent=isToday(ADDATE)?'Сегодня':new Date(ADDATE+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+}
+document.addEventListener('change',e=>{if(e.target.id==='f-date')updateDateLabel();});
+function updateCatLabel(){
+  if(ADDCAT){const c=catById(ADDCAT);$('f-cat-label').textContent=c.i+' '+c.n;}
+  else{
+    const guess=classify($('f-name').value);
+    $('f-cat-label').textContent=guess.i+' '+guess.n;
   }
-  box.innerHTML = html;
 }
-
-/* ---------- шторки и настройки ---------- */
-function openSheet(name){
-  closeSheets(true);
-  document.getElementById('overlay').classList.add('open');
-  document.getElementById('sheet-'+name).classList.add('open');
-  if (name==='currency') renderCurrencyOptions();
-  if (name==='theme') renderThemeOptions();
-  if (name==='settings'){ document.getElementById('curHint').textContent = curr().sym+' ›'; document.getElementById('thHint').textContent = ({light:'Светлая',dark:'Тёмная',system:'Системная'})[S.theme]+' ›'; }
-}
-function closeSheets(silent){
-  document.getElementById('overlay').classList.remove('open');
-  document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('open'));
-  if (!silent) haptic();
-}
-function renderCurrencyOptions(){
-  document.getElementById('currOptions').innerHTML = CURRENCIES.map(c=>
-    `<div class="curr-opt ${c.code===S.currency?'sel':''}" onclick="setCurrency('${c.code}')"><span>${c.sym} · ${c.name}</span><span>${c.code}</span></div>`).join('');
-}
-function setCurrency(code){ S.currency = code; save(); haptic('ok'); renderAll(); openSheet('currency'); }
-function renderThemeOptions(){
-  document.querySelectorAll('.theme-opt').forEach(el=>el.classList.toggle('sel', el.dataset.t===S.theme));
-}
-function setTheme(t){ S.theme = t; save(); haptic(); applyTheme(); openSheet('theme'); }
-function applyTheme(){
-  let mode = S.theme;
-  if (mode==='system'){
-    const tp = tg && tg.themeParams ? tg.themeParams : null;
-    mode = (tp && tp.bg_color && isDark(tp.bg_color)) ? 'dark'
-      : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
-  }
-  document.documentElement.setAttribute('data-theme', mode);
-}
-function isDark(hex){
-  if (!/^#/.test(hex)) return false;
-  const n = parseInt(hex.slice(1),16);
-  const r=(n>>16)&255,g=(n>>8)&255,b=n&255;
-  return (0.299*r+0.587*g+0.114*b)<128;
-}
-if (tg && tg.onEvent) tg.onEvent('themeChanged', ()=>{ if (S.theme==='system') applyTheme(); });
-if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', ()=>{ if (S.theme==='system') applyTheme(); });
-
-/* ---------- баланс ---------- */
-function openBalanceEdit(){
-  document.getElementById('balEditInput').value = S.balance ? String(S.balance) : '';
-  openSheet('balance');
-}
-function saveBalance(){
-  const v = parseFloat(document.getElementById('balEditInput').value.replace(',','.').replace(/\s/g,''));
-  if (isNaN(v)){ return; }
-  S.balance = v; save(); haptic('ok'); renderAll(); closeSheets(true);
-}
-
-/* ---------- онбординг ---------- */
-function renderOnbCurrencies(){
-  document.getElementById('currGrid').innerHTML = CURRENCIES.map(c=>
-    `<div class="curr-btn ${c.code===S.onbCurrency?'sel':''}" onclick="pickOnbCurrency('${c.code}')">${c.sym}<span class="curr-name">${c.name}</span></div>`).join('');
-}
-function pickOnbCurrency(code){ S.onbCurrency = code; save(); renderOnbCurrencies(); haptic(); }
-document.getElementById('onbStart').addEventListener('click', ()=>{
-  const v = parseFloat(document.getElementById('onbBalance').value.replace(',','.').replace(/\s/g,''));
-  S.balance = isNaN(v)?0:v;
-  S.currency = S.onbCurrency;
-  S.onboarded = true;
-  save(); haptic('ok'); applyTheme(); init();
+document.addEventListener('input',e=>{
+  if(e.target.id==='f-name'&&!ADDCAT)updateCatLabel();
+  if(e.target.id==='f-name'||e.target.id==='f-amount')e.target.classList.remove('err');
 });
-
-/* ---------- запуск ---------- */
-function init(){
-  if (!S.onboarded){ renderOnbCurrencies(); document.getElementById('onboarding').style.display='block'; return; }
-  document.getElementById('onboarding').style.display='none';
-  document.getElementById('main').classList.add('active');
-  renderAll();
+function saveTx(){
+  const name=$('f-name').value.trim();
+  const amount=parseFloat($('f-amount').value);
+  let ok=true;
+  if(!name){$('f-name').classList.add('err');ok=false;}
+  if(!amount||amount<=0){$('f-amount').classList.add('err');ok=false;}
+  if(!ok)return;
+  const cat=ADDCAT||classify(name).id;
+  S.tx.push({id:Date.now(),name,amount,type:ADDKIND,cat,date:ADDDATE});
+  S.balance+=ADDKIND==='income'?amount:-amount;
+  save();closeAdd();render();
 }
-applyTheme();
-init();
+function delTx(id){
+  const t=S.tx.find(x=>x.id===id);if(!t)return;
+  S.balance+=t.type==='income'?-t.amount:t.amount;
+  S.tx=S.tx.filter(x=>x.id!==id);save();render();
+  if($('page-history').classList.contains('active'))renderHistory();
+  if($('page-analysis').classList.contains('active'))renderAnalysis();
+}
+
+/* ================= BALANCE ================= */
+function openBalance(){$('bal-input').value=S.balance;openSheet('balance');}
+function saveBalance(){
+  const v=parseFloat($('bal-input').value);
+  if(isNaN(v))return;
+  S.balance=v;save();closeAll();render();
+}
+
+/* ================= DEBTS ================= */
+function openDebts(){
+  const total=S.debts.reduce((s,d)=>s+d.amount,0);
+  $('debt-total').textContent=money(total);
+  $('debts-list').innerHTML=S.debts.length?S.debts.map(d=>`
+    <div class="debt-row">
+      <div class="ico">💸</div>
+      <div class="mid"><div class="nm">${esc(d.name)}</div></div>
+      <div class="amt">${money(d.amount)}</div>
+      <button class="del-x" onclick="delDebt(${d.id})">✕</button>
+    </div>`).join(''):'<div class="empty">Долгов пока нет</div>';
+  openSheet('debts');
+}
+function openNewDebt(){
+  $('d-name').value='';$('d-amount').value='';
+  $('d-name').classList.remove('err');$('d-amount').classList.remove('err');
+  $('newdebt').classList.add('show');
+}
+function saveDebt(){
+  const name=$('d-name').value.trim();
+  const amount=parseFloat($('d-amount').value);
+  let ok=true;
+  if(!name){$('d-name').classList.add('err');ok=false;}
+  if(!amount||amount<=0){$('d-amount').classList.add('err');ok=false;}
+  if(!ok)return;
+  S.debts.push({id:Date.now(),name,amount});
+  save();$('newdebt').classList.remove('show');closeAll();render();
+}
+function delDebt(id){S.debts=S.debts.filter(d=>d.id!==id);save();openDebts();render();}
+
+/* ================= SHEETS ================= */
+function openSheet(which){
+  closeAll(false);
+  $('ovl').classList.add('show');
+  $('sh-'+which).classList.add('show');
+}
+function closeAll(ovl=true){
+  document.querySelectorAll('.sheet').forEach(s=>s.classList.remove('show'));
+  $('newdebt').classList.remove('show');
+  if(ovl)$('ovl').classList.remove('show');
+}
+
+/* ================= RENDER ALL ================= */
+function render(){
+  $('sym1').textContent=S.currency;
+  $('cur-set').textContent=S.currency;
+  applyTheme();
+  const now=new Date();
+  const monthTx=S.tx.filter(t=>t.type==='expense'&&t.date.slice(0,7)===now.toISOString().slice(0,7));
+  const monthExp=monthTx.reduce((s,t)=>s+t.amount,0);
+  $('month-exp').textContent=fmt(monthExp);
+  $('month-avg').textContent='В среднем '+money(monthExp/now.getDate())+' / день';
+  const bv=$('bal-val');bv.textContent=money(S.balance);
+  $('bal-dot').className='dot '+(S.balance<0?'r':'g');
+  const debtTotal=S.debts.reduce((s,d)=>s+d.amount,0);
+  $('debt-val').textContent=money(debtTotal);
+  $('debt-sub').textContent=S.debts.length?('Долгов: '+S.debts.length):'Нажми, чтобы добавить долг';
+  renderStats();renderLatest();
+  if($('page-history').classList.contains('active'))renderHistory();
+  if($('page-analysis').classList.contains('active'))renderAnalysis();
+}
+
+/* ================= INIT ================= */
+buildCurrencies($('ob-currencies'),S.currency);
+buildCurrencies($('sh-currencies'),S.currency);
+if(S.onboarded){$('onboard').classList.add('hidden');goTab('wallet');}
+render();
+if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.expand();}
 </script>
 </body>
 </html>
